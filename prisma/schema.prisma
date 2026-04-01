@@ -75,8 +75,9 @@ model Componente {
   lenguaje   Lenguaje       @relation(fields: [lenguajeId],   references: [id])
   tecnologia Tecnologia     @relation(fields: [tecnologiaId], references: [id])
 
-  variables       VariableComponente[]
-  itemsEstimacion EstimacionItem[]
+  variables           VariableComponente[]
+  itemsEstimacion     EstimacionItem[]
+  actividadComponentes ActividadComponente[]
 
   @@unique([idCsv, nombreComponente, lenguajeId, tecnologiaId], name: "uq_componente_clave")
   @@index([grupoId])
@@ -105,6 +106,74 @@ model VariableComponente {
 
   @@index([componenteId])
   @@map("variables_componente")
+}
+
+// ─── PROYECTO DE ESTIMACIÓN (con actividades) ─────────────────────────────────
+
+model Proyecto {
+  id              Int      @id @default(autoincrement())
+  requerimiento   String   @db.VarChar(100)
+  nombreProyecto  String   @db.VarChar(200) @map("nombre_proyecto")
+  objetivo        String?  @db.Text
+  fechaEstimacion DateTime? @map("fecha_estimacion") @db.Date
+  fechaEjecucion  DateTime? @map("fecha_ejecucion")  @db.Date
+  estimadoPor     String?  @db.VarChar(200) @map("estimado_por")
+  supervisadoPor  String?  @db.VarChar(200) @map("supervisado_por")
+  // Totales calculados al guardar
+  totalBaseMin    Int      @default(0) @map("total_base_min")
+  totalCopilotMin Int      @default(0) @map("total_copilot_min")
+  totalTmeMin     Int      @default(0) @map("total_tme_min")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt      @map("updated_at")
+
+  actividades Actividad[]
+
+  @@map("proyectos")
+}
+
+model Actividad {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(500)
+  proceso     String?  @db.VarChar(100)
+  bloque      String?  @db.VarChar(100)
+  jornadas    Decimal? @db.Decimal(8, 2)
+  fechaInicio DateTime? @map("fecha_inicio") @db.Date
+  fechaFin    DateTime? @map("fecha_fin")    @db.Date
+  orden       Int      @default(0)
+  // Totales calculados
+  totalBaseMin    Int @default(0) @map("total_base_min")
+  totalCopilotMin Int @default(0) @map("total_copilot_min")
+  totalTmeMin     Int @default(0) @map("total_tme_min")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt      @map("updated_at")
+
+  proyectoId  Int       @map("proyecto_id")
+  proyecto    Proyecto  @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+
+  componentes ActividadComponente[]
+
+  @@index([proyectoId])
+  @@map("actividades")
+}
+
+model ActividadComponente {
+  id               Int      @id @default(autoincrement())
+  cantidad         Int      @default(1)
+  reutilizar       Boolean  @default(false)
+  tiempoBaseMin    Int      @default(0) @map("tiempo_base_min")
+  tiempoCopilotMin Int      @default(0) @map("tiempo_copilot_min")
+  tiempoTmeMin     Int      @default(0) @map("tiempo_tme_min")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  actividadId  Int        @map("actividad_id")
+  componenteId Int        @map("componente_id")
+
+  actividad  Actividad  @relation(fields: [actividadId],  references: [id], onDelete: Cascade)
+  componente Componente @relation(fields: [componenteId], references: [id])
+
+  @@index([actividadId])
+  @@index([componenteId])
+  @@map("actividad_componentes")
 }
 
 // ─── ESTIMACIÓN ───────────────────────────────────────────────────────────────

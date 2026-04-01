@@ -6,6 +6,11 @@ import { cn } from '@/shared/lib/utils'
 
 const NAV_ITEMS = [
   {
+    href: '/proyectos',
+    label: 'Proyectos',
+    icon: '⊡',
+  },
+  {
     href: '/calculadora',
     label: 'Calculadora',
     icon: '⊞',
