@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens INDRA ────────────────────────────────────────────────── */
+:root {
+  /* Primarios */
+  --color-petroleum:   #004254;
+  --color-deep-navy:   #002532;
+  --color-warm-gray:   #AAAA9F;
+  --color-dark-gray:   #646459;
+
+  /* Acentos */
+  --color-success:     #44B757;
+  --color-accent-purple: #8661F5;
+  --color-accent-orange: #E56813;
+
+  /* Neutros */
+  --color-bg:          #E3E2DA;
+  --color-surface:     #FFFFFF;
+  --color-border:      #BCBBB5;
+
+  /* Semánticos */
+  --color-text:        #002532;
+  --color-text-soft:   #646459;
+  --color-text-invert: #FFFFFF;
+
+  /* Tipografía */
+  --font-sans: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+
+  /* z-index layers */
+  --z-dropdown:       100;
+  --z-sticky:         200;
+  --z-fixed:          300;
+  --z-modal-backdrop: 400;
+  --z-modal:          500;
+  --z-toast:          800;
+}
+
+/* ─── Reset base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar corporativo ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-warm-gray);
+}
+
+/* ─── Utilidades globales ────────────────────────────────────────────────── */
+.text-balance {
+  text-wrap: balance;
+}

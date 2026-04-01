@@ -1,0 +1,445 @@
+id;Nombre;Grupo;Tipo;Nombre Variables;Lenguaje;Tecnologia;Valor Nuevo/min;Publicar;% con copilot;copilot;% TME ;"TME 
+sobre el valor de la base "
+1;Input text;Base-Front;Elemento base;html/maquetacion;Html;React;20 min;1;20%;16 min;30%;26 min
+1;Input text;Base-Front;Elemento base;css;Html;React;30 min;1;30%;21 min;30%;39 min
+1;Input text;Base-Front;Elemento base;interfaces/parametros;Html;React;30 min;1;30%;21 min;30%;39 min
+2;Button;Base;Elemento base;html/maquetacion;Html;React;20 min;1;30%;14 min;30%;26 min
+2;Button;Base;Elemento base;Css;Html;React;30 min;1;30%;21 min;30%;39 min
+2;Button;Base;Elemento base;Handleclick;Html;React;15 min;1;20%;12 min;30%;20 min
+3;Input radio;Base;Elemento base;html/maquetacion;Html;React;20 min;1;20%;16 min;30%;26 min
+3;Input radio;Base;Elemento base;Estilos;Html;React;30 min;1;20%;24 min;30%;39 min
+3;Input radio;Base;Elemento base;interfaces/parametros;Html;React;30 min;1;20%;24 min;30%;39 min
+3;Input radio;Base;Elemento base;Handleclick;Html;React;30 min;1;20%;24 min;30%;39 min
+4;Button;Base;Elemento base;Maquetacion estilos handle ;Swift;iOS;60 min;1;20%;48 min;30%;78 min
+4;Button;Base;Elemento base;Estilos;Swift;iOS;40 min;1;20%;32 min;30%;52 min
+4;Button;Base;Elemento base;Handleclick;Swift;iOS;30 min;1;30%;21 min;30%;39 min
+5;Input text;Base;Elemento base;xml;Java;Android;20 min;1;12%;18 min;30%;26 min
+5;Input text;Base-Front;Elemento base;Handleclick;Java;Android;30 min;1;12%;26 min;30%;39 min
+1;Input text;Base-Front;Elemento base;Estilos custom;Html;React;60 min;1;12%;53 min;30%;78 min
+6;Button;Base-Front;Elemento base;Maquetacion;Java;Android;10 min;1;0%;10 min;30%;13 min
+6;Button;Base-Front;Elemento base;Estilos;Java;Android;38 min;1;15%;32 min;30%;49 min
+6;Button;Base-Front;Elemento base;Handleclick;Java;Android;14 min;1;12%;12 min;30%;18 min
+7;Micro create;Base-Back;Servicio;Clase validacion;Java;String_Boot;30 min;1;30%;21 min;30%;39 min
+7;Micro create;Base-Back;Servicio;Clase Modelo;Java;String_Boot;20 min;1;30%;14 min;30%;26 min
+7;Micro lectura;Base-Back;Servicio;Clase Modelo;Java;String_Boot;20 min;1;30%;14 min;30%;26 min
+8;Micro delete;Base-Back;Servicio;Clase Modelo;Java;String_Boot;20 min;1;30%;14 min;30%;26 min
+9;Micro update;Base-Back;Servicio;Clase Modelo;Java;String_Boot;20 min;1;30%;14 min;30%;26 min
+9;Micro update;Base-Back;Servicio;Clase Validaciones;Java;String_Boot;20 min;1;30%;14 min;30%;26 min
+1;Input text;Base-Front;Elemento base;evento onclick;Html;React;30 min;1;30%;21 min;30%;39 min
+10;Input text-login;Base-Front;Elemento base;html/maquetacion;Html;React;20 min;1;30%;14 min;30%;26 min
+10;Input text-login;Base-Front;Elemento base;evento onclick2;Html;React;30 min;1;30%;21 min;30%;39 min
+10;Input text-login;Base-Front;Elemento base;evento onclick3;Html;React;30 min;1;30%;21 min;30%;39 min
+11;logo-splash;Base-Front;Elemento base;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+11;logo-splash;Base-Front;Elemento base;animacion;Html;React;25 min;1;30%;18 min;30%;33 min
+9;Micro update;Base-Front;Elemento base;imagen;Html;React;10 min;1;30%;07 min;30%;13 min
+12;Input text;Base;Elemento base;Maquetacion;Swift;iOS;30 min;1;30%;21 min;30%;39 min
+13;jwt.swft;Base-Front;Elemento base;encrtpt;Swift;iOS;30 min;1;30%;21 min;30%;39 min
+13;jwt.swft;Base-Front;Elemento base;dencrtpt;Swift;iOS;40 min;1;30%;28 min;30%;52 min
+14;div;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+15;span;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+16;section;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+17;article;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+18;header;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+19;footer;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+20;nav;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+21;aside;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+22;main;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+23;figure;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+24;figcaption;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+25;details;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+26;summary;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+27;form;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+28;fieldset;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+29;table;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+30;tbody;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+31;thead;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+32;tfoot;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+33;generico;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+34;LinearLayout;Base-Front;Contenedor;Maquetacion;Java;Android;10 min;1;12%;09 min;30%;13 min
+35;RelativeLayout;Base-Front;Contenedor;Maquetacion;Java;Android;20 min;1;12%;18 min;30%;26 min
+36;ConstraintLayout;Base-Front;Contenedor;Maquetacion;Java;Android;30 min;1;12%;26 min;30%;39 min
+38;GridLayout;Base-Front;Contenedor;Maquetacion;Java;Android;10 min;1;12%;09 min;30%;13 min
+40;CoordinatorLayout;Base-Front;Contenedor;Maquetacion;Java;Android;90 min;1;12%;79 min;30%;117 min
+41;ScrollView;Base-Front;Contenedor;Maquetacion;Java;Android;25 min;1;12%;22 min;30%;33 min
+42;HorizontalScrollView;Base-Front;Contenedor;Maquetacion;Java;Android;25 min;1;12%;22 min;30%;33 min
+44;ViewGroup;Base-Front;Contenedor;Maquetacion;Java;Android;10 min;1;12%;09 min;30%;13 min
+45;RecyclerView;Base-Front;Contenedor;Maquetacion;Java;Android;80 min;1;12%;70 min;30%;104 min
+46;UIView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+47;UIScrollView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+48;UIStackView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+49;UITableView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+50;UICollectionView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+51;UITabBarController;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+52;UINavigationController;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+53;UIPageViewController;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+54;UIPopoverController;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+55;UIWindow;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+56;UISplitViewController;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+57;Contenedor generico ;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+58;View;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+59;ScrollView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+60;FlatList;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+61;SectionList;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+62;VirtualizedList;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+63;SafeAreaView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+64;KeyboardAvoidingView;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+65;Modal;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+66;Pressable;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+67;TouchableOpacity;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+68;TouchableHighlight;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+69;TouchableWithoutFeedback;Base-Front;Contenedor;Maquetacion;Swift;iOS;10 min;1;30%;07 min;30%;13 min
+70;Creación Controller;Base-Back;Elemento base;menor 10 parametros;Java;String_Boot;120 min;1;30%;84 min;30%;156 min
+71;Creación Controller;Base-Back;Elemento base;menor 30 parametros;Java;String_Boot;180 min;1;30%;126 min;30%;234 min
+72;Modificación Controller;Base-Back;Elemento base;menor 10 parametros;Java;String_Boot;01 min;1;30%;00 min;30%;01 min
+73;Modificación Controller;Base-Back;Elemento base;menor 30 parametros;Java;String_Boot;60 min;1;30%;42 min;30%;78 min
+74;Tabla BD;Base-Back;Elemento base;Complejidad Basica;Java;String_Boot;180 min;1;30%;126 min;30%;234 min
+75;ACP-Front;Base-Doc;Doc;Creacion;Doc;Word;120 min;1;0%;120 min;30%;156 min
+76;ACP-Back;Base-Doc;Doc;Creacion;Doc;Word;140 min;1;0%;140 min;30%;182 min
+77;DOC-MS;Base-Doc;Doc;Creacion;Doc;Word;140 min;1;0%;140 min;30%;182 min
+78;DOC-BD;Base-Doc;Doc;Creacion;Doc;Word;140 min;1;0%;140 min;30%;182 min
+79;Proveedor-Tema; Base-provider;Proveedor;Temas;Html;React;110 min;1;30%;77 min;30%;143 min
+80;Proveedor-Api; Base-provider;Proveedor;Temas;Html;React;90 min;1;30%;63 min;30%;117 min
+81;TextView;Base-Front;Elemento base;xml;Java;Android;12 min;1;0%;12 min;30%;16 min
+83;Button;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+83;Button;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+83;Button;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+84;CheckBox;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+84;CheckBox;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+84;CheckBox;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+85;Input-t;Base-Front;Elemento base;HandleChange;JavaScript;React_Native;10 min;1;30%;07 min;30%;13 min
+85;Input-t;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+85;Input-t;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+86;RadioButton;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+86;RadioButton;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+86;RadioButton;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+87;ToggleSwitch;Base-Front;Elemento base;HandleToggle;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+87;ToggleSwitch;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+87;ToggleSwitch;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+88;Dropdown;Base-Front;Elemento base;HandleSelect;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+88;Dropdown;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+88;Dropdown;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+89;Pagination;Base-Front;Elemento base;HandlePageChange;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+89;Pagination;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+89;Pagination;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+90;Pill;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+90;Pill;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+90;Pill;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+91;List;Base-Front;Elemento base;RenderItems;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+91;List;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+91;List;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+92;ListItem;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+92;ListItem;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+92;ListItem;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+93;Navbar;Base-Front;Elemento base;HandleNav;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+93;Navbar;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+93;Navbar;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+94;Footerbar;Base-Front;Elemento base;HandleFooter;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+94;Footerbar;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+94;Footerbar;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+95;NavItem;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+94;NavItem;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+95;NavItem;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+96;Headerbar;Base-Front;Elemento base;HandleHeader;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+96;Headerbar;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+96;Headerbar;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+97;Cards-login;Base-Front;Elemento base;HandleCardAction;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+97;Cards-login;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+97;Cards-login;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+98;Grids;Base-Front;Elemento base;RenderGridItems;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+98;Grids;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+98;Grids;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+98;Avatar;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;20 min;1;30%;14 min;30%;26 min
+98;Overlay;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;20 min;1;30%;15 min;30%;26 min
+99;Documento de prueas;Base-Doc;Doc;pruea de 5 requerimintos ;Doc;Word;55 min;1;0%;55 min;30%;72 min
+99;Documento de prueas;Base-Doc;Doc;pruea de 2 requerimintos ;Doc;Word;10 min;1;0%;10 min;30%;13 min
+100;Estado Global ;Base-Front;Elemento base;localStorage;JavaScript;React;20 min;1;30%;14 min;30%;26 min
+101;Pruebas-excel-estado-global;Base-Doc;Doc;3 pruebas funcionales estado;Doc;Excel;20 min;1;0%;20 min;30%;26 min
+103;Button-native;Base-Front;Elemento base;TouchableHighlight;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+104;select;Base-Front;Elemento base;Estilos;JavaScript;React;20 min;1;30%;14 min;30%;26 min
+104;select;Base-Front;Elemento base;Evento click;JavaScript;React;20 min;1;30%;14 min;30%;26 min
+105;axios;Base-Front;Proveedor;Instalacion ;JavaScript;React;01 min;1;10%;01 min;30%;01 min
+106;axios;Base-Front;Elemento base;Configuracion;JavaScript;React;10 min;1;30%;07 min;30%;13 min
+107;axios;Base-Front;Elemento base;Interceptor de request;JavaScript;React;05 min;1;30%;04 min;30%;07 min
+108;axios;Base-Front;Elemento base;Interceptor de response;JavaScript;React;05 min;1;30%;04 min;30%;07 min
+109;Dropdown con filtro;Base-Front;Contenedor;Maquetacion;Html;React;15 min;1;20%;12 min;30%;20 min
+110;Dropdown con filtro;Base-Front;Elemento base;Estilos ;CSS;React;08 min;1;10%;07 min;30%;10 min
+111;Dropdown con filtro;Base-Front;Elemento base;Tipado de datos;JavaScript;React;03 min;1;5%;03 min;30%;04 min
+112;Dropdown con filtro;Base-Front;Elemento base;Logica de filtro;JavaScript;React;05 min;1;20%;04 min;30%;07 min
+113;Modal;Base-Front;Contenedor;Maquetacion;Html;React;10 min;1;30%;07 min;30%;13 min
+105;Modal;Base-Front;Elemento base;Estilos ;CSS;React;08 min;1;10%;07 min;30%;10 min
+105;Modal;Base-Front;Elemento base;Tipado de datos;JavaScript;React;05 min;1;5%;05 min;30%;07 min
+105;Card;Base-Front;Contenedor;Maquetacion;Html;React;20 min;1;20%;16 min;30%;26 min
+105;Card;Base-Front;Elemento base;Estilos ;CSS;React;12 min;1;20%;10 min;30%;16 min
+105;Card;Base-Front;Elemento base;Tipado de datos;JavaScript;React;05 min;1;15%;04 min;30%;07 min
+105;Card;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;15 min;1;20%;12 min;30%;20 min
+105;Acordion;Base-Front;Elemento base;Maquetacion;Html;React;15 min;1;15%;#REF!;30%;20 min
+105;Acordion;Base-Front;Elemento base;Estilos ;CSS;React;10 min;1;20%;12 min;30%;13 min
+105;Acordion;Base-Front;Elemento base;Tipado de datos;JavaScript;React;08 min;1;20%;08 min;30%;10 min
+105;Acordion;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;12 min;1;25%;06 min;30%;16 min
+105;ToolTip;Base-Front;Elemento base;Maquetacion;Html;React;10 min;1;20%;10 min;30%;13 min
+105;ToolTip;Base-Front;Elemento base;Estilos ;CSS;React;08 min;1;20%;06 min;30%;10 min
+105;ToolTip;Base-Front;Elemento base;Tipado de datos;JavaScript;React;04 min;1;20%;03 min;30%;05 min
+105;ToolTip;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;06 min;1;20%;05 min;30%;08 min
+105;Carousel;Base-Front;Contenedor;Maquetacion;Html;React;20 min;1;20%;16 min;30%;26 min
+105;Carousel;Base-Front;Elemento base;Estilos ;CSS;React;15 min;1;20%;12 min;30%;20 min
+105;Carousel;Base-Front;Elemento base;Tipado de datos;JavaScript;React;08 min;1;15%;07 min;30%;10 min
+105;Carousel;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;20 min;1;10%;18 min;30%;26 min
+105;Notificacion;Base-Front;Contenedor;Maquetacion;Html;React;12 min;1;15%;10 min;30%;16 min
+105;Notificacion;Base-Front;Elemento base;Estilos ;CSS;React;08 min;1;15%;07 min;30%;10 min
+105;Notificacion;Base-Front;Elemento base;Tipado de datos;JavaScript;React;05 min;1;20%;04 min;30%;07 min
+105;Notificacion;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;10 min;1;25%;08 min;30%;13 min
+105;BreadCrumb;Base-Front;Elemento base;Maquetacion;Html;React;10 min;1;20%;08 min;30%;13 min
+105;BreadCrumb;Base-Front;Elemento base;Estilos ;CSS;React;04 min;1;20%;03 min;30%;05 min
+105;BreadCrumb;Base-Front;Elemento base;Tipado de datos;JavaScript;React;07 min;1;15%;06 min;30%;09 min
+105;BreadCrumb;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;08 min;1;10%;07 min;30%;10 min
+105;Tabs;Base-Front;Elemento base;Maquetacion;Html;React;15 min;1;5%;14 min;30%;20 min
+105;Tabs;Base-Front;Elemento base;Estilos ;CSS;React;12 min;1;10%;11 min;30%;16 min
+105;Tabs;Base-Front;Elemento base;Tipado de datos;JavaScript;React;06 min;1;10%;05 min;30%;08 min
+105;Tabs;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;12 min;1;10%;11 min;30%;16 min
+105;Pagination;Base-Front;Elemento base;Maquetacion;Html;React;12 min;1;20%;10 min;30%;16 min
+105;Pagination;Base-Front;Elemento base;Estilos ;CSS;React;08 min;1;20%;06 min;30%;10 min
+105;Pagination;Base-Front;Elemento base;Tipado de datos;JavaScript;React;05 min;1;20%;04 min;30%;07 min
+105;Pagination;Base-Front;Elemento base;Logica de presentacion;JavaScript;React;10 min;1;20%;08 min;30%;13 min
+12;Input text;Base-Front;Elemento base;Estilos;Swift;iOS;50 min;1;40%;30 min;30%;65 min
+12;Input text;Base-Front;Elemento base;handle;Swift;iOS;20 min;1;30%;14 min;30%;26 min
+115;ViewController;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+115;ViewController;Base-Front;Elemento base;Logica de presentación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+115;ViewController;Base-Front;Elemento base;Referencia a clase;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+116;Label;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+116;Label;Base-Front;Elemento base;Estilos;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+116;Label;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+116;Label;Base-Front;Elemento base;Logica de presentación;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+117;Botón;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+117;Botón;Base-Front;Elemento base;Estilos;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+117;Botón;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+117;Botón;Base-Front;Elemento base;Logica de presentación;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+117;Botón;Base-Front;Elemento base;Acción del elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+118;UIScroll;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+118;UIScroll;Base-Front;Elemento base;Referencia a clase;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+119;UITable;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+119;UITable;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+119;UITable;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+119;UITable;Base-Front;Elemento base;Logica de presentación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+119;UITable;Base-Front;Elemento base;Delegado;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+120;UIView;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+120;UIView;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+120;UIView;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+121;Stack View;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+121;Stack View;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+121;Stack View;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+122;UIImage;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+122;UIImage;Base-Front;Elemento base;Estilos;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+122;UIImage;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+122;UIImage;Base-Front;Elemento base;Lógica de carga;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+123;Loading;Base-Front;Elemento base;Maquetación;Swift;iOS;03 min;1;0%;03 min;30%;04 min
+123;Loading;Base-Front;Elemento base;Estilos;Swift;iOS;02 min;1;0%;02 min;30%;03 min
+123;Loading;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+123;Loading;Base-Front;Elemento base;Lógica de presentación;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+124;Collection View;Base-Front;Elemento base;Maquetación;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+124;Collection View;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+124;Collection View;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+124;Collection View;Base-Front;Elemento base;Logica de presentación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+124;Collection View;Base-Front;Elemento base;Delegado;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+125;Celda de tabla;Base-Front;Elemento base;Maquetación;Swift;iOS;15 min;1;0%;15 min;30%;20 min
+125;Celda de tabla;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+125;Celda de tabla;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+125;Celda de tabla;Base-Front;Elemento base;Logica de presentación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+126;Global Styles;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;20%;24 min;30%;39 min
+127;Webview;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;20 min;1;30%;14 min;30%;26 min
+127;Webview;Base-Front;Elemento base;Estilos;JavaScript;React_Native;20 min;1;20%;16 min;30%;26 min
+127;Webview;Base-Front;Elemento base;Control de eventos;JavaScript;React_Native;30 min;1;20%;24 min;30%;39 min
+129;Input-Number;Base-Front;Elemento base;HandleChange;JavaScript;React_Native;10 min;1;30%;07 min;30%;13 min
+129;Input-Number;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;20 min;1;20%;16 min;30%;26 min
+129;Input-Number;Base-Front;Elemento base;Estilos;JavaScript;React_Native;20 min;1;20%;16 min;30%;26 min
+130;Input-Password;Base-Front;Elemento base;HandleChange;JavaScript;React_Native;10 min;1;30%;07 min;30%;13 min
+130;Input-Password;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;20%;24 min;30%;39 min
+130;Input-Password;Base-Front;Elemento base;Estilos;JavaScript;React_Native;40 min;1;20%;32 min;30%;52 min
+131;DatePicker;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;20%;24 min;30%;39 min
+131;DatePicker;Base-Front;Elemento base;Estilos;JavaScript;React_Native;30 min;1;30%;21 min;30%;39 min
+131;DatePicker;Base-Front;Elemento base;HandleSelect;JavaScript;React_Native;30 min;1;10%;27 min;30%;39 min
+137;Estructura del proyecto ;Base-Back;Elemento base;Estructura del proyecto ;Java;String_Boot;60 min;1;10%;54 min;30%;78 min
+138;Consumo servicio PHP;Base-Front;Proveedor;Crear proveedor;Swift;iOS;120 min;1;0%;120 min;30%;156 min
+138;Consumo servicio PHP;Base-Front;Proveedor;Estructurar el request;Swift;iOS;120 min;1;0%;120 min;30%;156 min
+138;Consumo servicio PHP;Base-Front;Proveedor;Crear tipo de request;Swift;iOS;60 min;1;0%;60 min;30%;78 min
+138;Consumo servicio PHP;Base-Front;Proveedor;Crear tipo response;Swift;iOS;60 min;1;0%;60 min;30%;78 min
+138;Consumo servicio PHP;Base-Front;Proveedor;Integrar en la vista;Swift;iOS;420 min;1;0%;420 min;30%;546 min
+138;Consumo servicio PHP;Base-Front;Proveedor;Pruebas de integración;Swift;iOS;60 min;1;0%;60 min;30%;78 min
+139;Switch;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+139;Switch;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+139;Switch;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+139;Switch;Base-Front;Elemento base;Logica de presentación;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+139;Switch;Base-Front;Elemento base;Acción del elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+140;Progress Bar;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+140;Progress Bar;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+140;Progress Bar;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+140;Progress Bar;Base-Front;Elemento base;Logica de presentación;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+140;Progress Bar;Base-Front;Elemento base;Acción del elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+141;Page Control;Base-Front;Elemento base;Maquetación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+141;Page Control;Base-Front;Elemento base;Estilos;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+141;Page Control;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+141;Page Control;Base-Front;Elemento base;Logica de presentación;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+141;Page Control;Base-Front;Elemento base;Acción del elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+142;Date Picker;Base-Front;Elemento base;Estilos;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+142;Date Picker;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+142;Date Picker;Base-Front;Elemento base;Logica de presentación;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+142;Date Picker;Base-Front;Elemento base;Acción del elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+143;Libreta de contactos;Base-Front;Elemento base;Invocación a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+143;Libreta de contactos;Base-Front;Elemento base;Logica de presentación;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+143;Libreta de contactos;Base-Front;Elemento base;Acción del elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+143;Libreta de contactos;Base-Front;Elemento base;Gestión de elemento;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+144;WebKit View;Base-Front;Elemento base;Maquetación;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+144;WebKit View;Base-Front;Elemento base;Estilos;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+144;WebKit View;Base-Front;Elemento base;Referencia a clase;Swift;iOS;05 min;1;0%;05 min;30%;07 min
+144;WebKit View;Base-Front;Elemento base;Logica de presentación;Swift;iOS;240 min;1;0%;240 min;30%;312 min
+144;WebKit View;Base-Front;Elemento base;Acción del elemento;Swift;iOS;240 min;1;0%;240 min;30%;312 min
+145;Invocación a web externa;Base-Front;Proveedor;Validación de URL;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+145;Invocación a web externa;Base-Front;Proveedor;Llamado a webview;Swift;iOS;30 min;1;0%;30 min;30%;39 min
+145;Invocación a web externa;Base-Front;Proveedor;Logica de presentación;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+146;Invocación a webview;Base-Front;Proveedor;Validación de URL;Swift;iOS;10 min;1;0%;10 min;30%;13 min
+146;Invocación a webview;Base-Front;Proveedor;Llamado a webview;Swift;iOS;30 min;1;0%;30 min;30%;39 min
+146;Invocación a webview;Base-Front;Proveedor;Logica de presentación;Swift;iOS;20 min;1;0%;20 min;30%;26 min
+146;Invocación a webview;Base-Front;Proveedor;Lógica de comunicación;Swift;iOS;60 min;1;0%;60 min;30%;78 min
+147;Consumo servicio JAVA;Base-Front;Proveedor;Crear tipo de request;Swift;iOS;30 min;1;0%;30 min;30%;39 min
+147;Consumo servicio JAVA;Base-Front;Proveedor;Crear tipo response;Swift;iOS;30 min;1;0%;30 min;30%;39 min
+147;Consumo servicio JAVA;Base-Front;Proveedor;Integrar en la vista;Swift;iOS;420 min;1;0%;420 min;30%;546 min
+147;Consumo servicio JAVA;Base-Front;Proveedor;Pruebas de integración;Swift;iOS;60 min;1;0%;60 min;30%;78 min
+147;Consumo servicio  JAVA;Base-Front;Proveedor;Estructurar el request;Swift;iOS;120 min;1;0%;120 min;30%;156 min
+147;Consumo servicio  JAVA;Base-Front;Proveedor;Crear tipo de request;Swift;iOS;60 min;1;0%;60 min;30%;78 min
+148;Creación estructura arquetipo REST;Base-Back;Elemento base;Creación estructura arquetipo REST;Java;MS;120 min;1;10%;108 min;30%;156 min
+149;Creación estructura arquetipo SOAP;Base-Back;Elemento base;Creación estructura arquetipo SOAP;Java;MS;180 min;1;10%;162 min;30%;234 min
+150;peticion campos de entrada y salida es menor a 10;Base-Back;Elemento base;peticion campos de entrada y salida es menor a 10;Java;MS;60 min;1;10%;54 min;30%;78 min
+151;peticion campos de entrada y salida es menor a 30;Base-Back;Elemento base;peticion campos de entrada y salida es menor a 30;Java;MS;120 min;1;18%;98 min;30%;156 min
+152;peticion campos de entrada y salida es menor a 60;Base-Back;Elemento base;peticion campos de entrada y salida es menor a 60;Java;MS;180 min;1;25%;135 min;30%;234 min
+153;peticion campos de entrada y salida es menor a 90;Base-Back;Elemento base;peticion campos de entrada y salida es menor a 90;Java;MS;240 min;1;25%;180 min;30%;312 min
+154;Mapeo/Transformación básica;Base-Back;Elemento base;Mapeo/Transformación básica;Java;MS;90 min;1;10%;81 min;30%;117 min
+155;Mapeo/Transformación Media;Base-Back;Elemento base;Mapeo/Transformación Media;Java;MS;180 min;1;18%;148 min;30%;234 min
+156;Mapeo/Transformación Alta;Base-Back;Elemento base;Mapeo/Transformación Alta;Java;MS;240 min;1;25%;180 min;30%;312 min
+157;Validación de parámetros;Base-Back;Elemento base;Validación de parámetros;Java;MS;60 min;1;18%;49 min;30%;78 min
+158;Validación de parámetros servicio SOAP (xsd,wsdl);Base-Back;Elemento base;Validación de parámetros servicio SOAP (xsd,wsdl);Java;MS;120 min;1;18%;98 min;30%;156 min
+159;Lógica de negocio básica;Base-Back;Elemento base;Lógica de negocio básica;Java;MS;180 min;1;25%;135 min;30%;234 min
+160;Lógica de negocio Media;Base-Back;Elemento base;Lógica de negocio Media;Java;MS;240 min;1;10%;216 min;30%;312 min
+161;Logica de Negocio Compleja;Base-Back;Elemento base;Logica de Negocio Compleja;Java;MS;360 min;1;10%;324 min;30%;468 min
+162;Legado BD;Base-Back;Elemento base;Legado BD;Java;MS;120 min;1;18%;98 min;30%;156 min
+163;Legado SOAP desde Cliente generado complejidad Baja;Base-Back;Elemento base;Legado SOAP desde Cliente generado complejidad Baja;Java;MS;180 min;1;0%;180 min;30%;234 min
+164;Legado SOAP Rudimentario  complejidad Baja;Base-Back;Elemento base;Legado SOAP Rudimentario  complejidad Baja;Java;MS;240 min;1;18%;197 min;30%;312 min
+165;Legado SOAP desde Cliente generado complejidad Alta;Base-Back;Elemento base;Legado SOAP desde Cliente generado complejidad Alta;Java;MS;240 min;1;0%;240 min;30%;312 min
+166;Legado SOAP Rudimentario  complejidad Alta;Base-Back;Elemento base;Legado SOAP Rudimentario  complejidad Alta;Java;MS;360 min;1;18%;295 min;30%;468 min
+167;Legado Rest Complejidad Baja ;Base-Back;Elemento base;Legado Rest Complejidad Baja ;Java;MS;120 min;1;18%;98 min;30%;156 min
+168;Legado Rest Complejidad Media;Base-Back;Elemento base;Legado Rest Complejidad Media;Java;MS;180 min;1;18%;148 min;30%;234 min
+169;Legado Rest Complejidad Alta ;Base-Back;Elemento base;Legado Rest Complejidad Alta ;Java;MS;240 min;1;18%;197 min;30%;312 min
+170;Implementación básica;Base-Back;Elemento base;Implementación básica;Java;MS;120 min;1;18%;98 min;30%;156 min
+171;Implementación básica;Base-Back;Elemento base;Implementación básica;Java;MS;180 min;1;10%;162 min;30%;234 min
+172;Configuracion del asincronismo;Base-Back;Elemento base;Configuracion del asincronismo;Java;MS;240 min;1;0%;240 min;30%;312 min
+173;Implementación Reintentos básica;Base-Back;Elemento base;Implementación Reintentos básica;Java;MS;120 min;1;0%;120 min;30%;156 min
+174;Implementación Reintentos alta;Base-Back;Elemento base;Implementación Reintentos alta;Java;MS;240 min;1;0%;240 min;30%;312 min
+175;Logica de Loggeo BD - Registro trazabilidad;Base-Back;Elemento base;Logica de Loggeo BD - Registro trazabilidad;Java;MS;240 min;1;10%;216 min;30%;312 min
+176;Configuracion de la cola de implementación;Base-Back;Elemento base;Configuracion de la cola de implementación;Java;MS;60 min;1;10%;54 min;30%;78 min
+177;Pruebas de carga - Reporte Basico;Base-Back;Elemento base;Pruebas de carga - Reporte Basico;Java;MS;120 min;1;10%;108 min;30%;156 min
+178;Pruebas de carga - Reporte Medio;Base-Back;Elemento base;Pruebas de carga - Reporte Medio;Java;MS;90 min;1;10%;81 min;30%;117 min
+179;Pruebas de carga - Reporte Alto;Base-Back;Elemento base;Pruebas de carga - Reporte Alto;Java;MS;120 min;1;10%;108 min;30%;156 min
+180;Creación de prueba - Basico;Base-Back;Elemento base;Creación de prueba - Basico;Java;MS;60 min;1;10%;54 min;30%;78 min
+181;Creación de prueba - Media ;Base-Back;Elemento base;Creación de prueba - Media ;Java;MS;120 min;1;10%;108 min;30%;156 min
+182;Creación de prueba - Alta ;Base-Back;Elemento base;Creación de prueba - Alta ;Java;MS;180 min;1;10%;162 min;30%;234 min
+183;Importe de Pruebas por componente básico;Base-Back;Elemento base;Importe de Pruebas por componente básico;Java;MS;60 min;1;10%;54 min;30%;78 min
+184;Importe de Pruebas por componente medio;Base-Back;Elemento base;Importe de Pruebas por componente medio;Java;MS;90 min;1;10%;81 min;30%;117 min
+185;Importe de Pruebas por componente alto;Base-Back;Elemento base;Importe de Pruebas por componente alto;Java;MS;120 min;1;10%;108 min;30%;156 min
+186;Pruebas unitarias desarrollo;Base-Back;Elemento base;Pruebas unitarias desarrollo;Java;MS;240 min;1;18%;197 min;30%;312 min
+187;Solicitud creación de rama requerimiento MS, APL-MSCluster;Gestión de la configuración;Elemento base;Solicitud creación de rama requerimiento MS, APL-MSCluster;DevOps;DevOps;60 min;1;0%;60 min;30%;78 min
+188;Solicitud merge develop;Gestión de la configuración;Elemento base;Solicitud merge develop;DevOps;DevOps;60 min;1;0%;60 min;30%;78 min
+189;Solicitud creacion RC;Gestión de la configuración;Elemento base;Solicitud creacion RC;DevOps;DevOps;60 min;1;0%;60 min;30%;78 min
+190;Solicitud de artefactos ;Gestión de la configuración;Elemento base;Solicitud de artefactos ;DevOps;DevOps;60 min;1;0%;60 min;30%;78 min
+191;Creación de pipeline Develop;Gestión de la configuración;Elemento base;Creación de pipeline Develop;DevOps;DevOps;20 min;1;0%;20 min;30%;26 min
+192;Creación de pipeline Relesse;Gestión de la configuración;Elemento base;Creación de pipeline Relesse;DevOps;DevOps;20 min;1;0%;20 min;30%;26 min
+193;Creación Plantilla Funcional 1 ms;Base-Doc;Doc;Creación Plantilla Funcional 1 ms;Doc;Word;480 min;1;0%;480 min;30%;624 min
+194;Creación Excel Definición Baja;Base-Doc;Doc;Creación Excel Definición Baja;Doc;Word;120 min;1;0%;120 min;30%;156 min
+195;Creación Excel Definición Media;Base-Doc;Doc;Creación Excel Definición Media;Doc;Word;180 min;1;0%;180 min;30%;234 min
+196;Creación Excel Definición Alta;Base-Doc;Doc;Creación Excel Definición Alta;Doc;Word;300 min;1;0%;300 min;30%;390 min
+197;Creación de Swagger automático;Base-Doc;Doc;Creación de Swagger automático;Doc;Word;120 min;1;0%;120 min;30%;156 min
+198;Creación de Swagger tipo SOAP manual;Base-Doc;Doc;Creación de Swagger tipo SOAP manual;Doc;Word;480 min;1;0%;480 min;30%;624 min
+199;Creación de ACP MS Complejidad baja;Base-Doc;Doc;Creación de ACP MS Complejidad baja;Doc;Word;60 min;1;0%;60 min;30%;78 min
+200;Creación de ACP MS Complejidad Media;Base-Doc;Doc;Creación de ACP MS Complejidad Media;Doc;Word;120 min;1;0%;120 min;30%;156 min
+201;Creación de ACP MS Complejidad Alta;Base-Doc;Doc;Creación de ACP MS Complejidad Alta;Doc;Word;180 min;1;0%;180 min;30%;234 min
+202;Creación de ACP BD  ;Base-Doc;Doc;Creación de ACP BD  ;Doc;Word;150 min;1;0%;150 min;30%;195 min
+203;Versionamiento Wiki;Base-Doc;Doc;Versionamiento Wiki;Doc;Word;30 min;1;0%;30 min;30%;39 min
+204;Cifrado de datos;Base-Back;Elemento base;Cifrado de datos;Java;JAVA;210 min;1;0%;210 min;30%;273 min
+205;Descifrado de datos;Base-Back;Elemento base;Descifrado de datos;Java;JAVA;210 min;1;0%;210 min;30%;273 min
+206;Crear estructura del proyecto (paquetes y directorios);Base-Back;Elemento base;Crear estructura del proyecto (paquetes y directorios);Java;JAVA;60 min;1;0%;60 min;30%;78 min
+207;Crear xml log4j;Base-Back;Elemento base;Crear xml log4j;Java;JAVA;30 min;1;0%;30 min;30%;39 min
+208;Crear POM;Base-Back;Elemento base;Crear POM;Java;JAVA;30 min;1;0%;30 min;30%;39 min
+209;Crear clases constantes;Base-Back;Elemento base;Crear clases constantes;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+210;Crear archivo config;Base-Back;Elemento base;Crear archivo config;Java;JAVA;120 min;1;0%;120 min;30%;156 min
+211;Crear .bat/.sh;Base-Back;Elemento base;Crear .bat/.sh;Java;JAVA;60 min;1;0%;60 min;30%;78 min
+212;Crear clase de base de datos;Base-Back;Elemento base;Crear clase de base de datos;Java;JAVA;30 min;1;0%;30 min;30%;39 min
+213;Crear método de conexión;Base-Back;Elemento base;Crear método de conexión;Java;JAVA;30 min;1;0%;30 min;30%;39 min
+214;Crear método de desconexión;Base-Back;Elemento base;Crear método de desconexión;Java;JAVA;30 min;1;0%;30 min;30%;39 min
+215;Crear método para consultar;Base-Back;Elemento base;Crear método para consultar;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+216;Crear método par insertar registros;Base-Back;Elemento base;Crear método par insertar registros;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+217;Crear método actualizar registros;Base-Back;Elemento base;Crear método actualizar registros;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+218;Crer método para setear filtros;Base-Back;Elemento base;Crer método para setear filtros;Java;JAVA;30 min;1;10%;27 min;30%;39 min
+219;Crear método para setear parámetros;Base-Back;Elemento base;Crear método para setear parámetros;Java;JAVA;30 min;1;10%;27 min;30%;39 min
+220;Crear método para truncar tabla;Base-Back;Elemento base;Crear método para truncar tabla;Java;JAVA;30 min;1;10%;27 min;30%;39 min
+221;Crear método para crear generar sentencia insert dinámica;Base-Back;Elemento base;Crear método para crear generar sentencia insert dinámica;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+222;Crear método para llamado a SP;Base-Back;Elemento base;Crear método para llamado a SP;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+223;Crear clase DTO;Base-Back;Elemento base;Crear clase DTO;Java;JAVA;30 min;1;30%;21 min;30%;39 min
+224;Crear clase ejecutora;Base-Back;Elemento base;Crear clase ejecutora;Java;JAVA;20 min;1;10%;18 min;30%;26 min
+225;Crear clase ENUM errores;Base-Back;Elemento base;Crear clase ENUM errores;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+226;Crear Clase excepción técnica;Base-Back;Elemento base;Crear Clase excepción técnica;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+227;Crear clase excepción genérica;Base-Back;Elemento base;Crear clase excepción genérica;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+228;Integración con MS/WS;Base-Back;Elemento base;Integración con MS/WS;Java;JAVA;960 min;1;30%;672 min;30%;1.248 min
+229;Construcción de cliente para MS/WS;Base-Back;Elemento base;Construcción de cliente para MS/WS;Java;JAVA;1.440 min;1;10%;1.296 min;30%;1.872 min
+230;Consumo de MS con request;Base-Back;Elemento base;Consumo de MS con request;Java;JAVA;240 min;1;30%;168 min;30%;312 min
+231;Crear clase procesadora;Base-Back;Elemento base;Crear clase procesadora;Java;JAVA;120 min;1;20%;96 min;30%;156 min
+232;Integración de lógica;Base-Back;Elemento base;Integración de lógica;Java;JAVA;480 min;1;;480 min;30%;624 min
+233;Crear método SFTP;Base-Back;Elemento base;Crear método SFTP;Java;JAVA;120 min;1;30%;84 min;30%;156 min
+234;Crear clase utilidades para Archivos;Base-Back;Elemento base;Crear clase utilidades para Archivos;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+235;Crear método de lectura archivo csv/txt;Base-Back;Elemento base;Crear método de lectura archivo csv/txt;Java;JAVA;120 min;1;30%;84 min;30%;156 min
+236;Crear lectura excel;Base-Back;Elemento base;Crear lectura excel;Java;JAVA;180 min;1;30%;126 min;30%;234 min
+237;Crear escritura excel;Base-Back;Elemento base;Crear escritura excel;Java;JAVA;180 min;1;30%;126 min;30%;234 min
+238;Crer escritura csv/txt;Base-Back;Elemento base;Crer escritura csv/txt;Java;JAVA;60 min;1;30%;42 min;30%;78 min
+239;Crear archivo de errores;Base-Back;Elemento base;Crear archivo de errores;Java;JAVA;120 min;1;30%;84 min;30%;156 min
+240;Crear reproceso 1 plataforma;Base-Back;Elemento base;Crear reproceso 1 plataforma;Java;JAVA;120 min;1;0%;120 min;30%;156 min
+241;Crear copia/mover/eliminar archivo;Base-Back;Elemento base;Crear copia/mover/eliminar archivo;Java;JAVA;120 min;1;30%;84 min;30%;156 min
+242;Crear clase de cargar propiedad;Base-Back;Elemento base;Crear clase de cargar propiedad;Java;JAVA;120 min;1;10%;108 min;30%;156 min
+243;Crear clase de utilidades comunes;Base-Back;Elemento base;Crear clase de utilidades comunes;Java;JAVA;120 min;1;10%;108 min;30%;156 min
+244;Crear clase de validaciones;Base-Back;Elemento base;Crear clase de validaciones;Java;JAVA;60 min;1;10%;54 min;30%;78 min
+245;Integrar librería de logs;Base-Back;Elemento base;Integrar librería de logs;Java;JAVA;120 min;1;10%;108 min;30%;156 min
+246;Pruebas locales;Base-Back;Elemento base;Pruebas locales;Java;JAVA;240 min;1;0%;240 min;30%;312 min
+247;Despliegue servidor pre;Base-Back;Elemento base;Despliegue servidor pre;Java;JAVA;60 min;1;0%;60 min;30%;78 min
+248;Pruebas desarrollo en ambiente pre;Base-Back;Elemento base;Pruebas desarrollo en ambiente pre;Java;JAVA;180 min;1;0%;180 min;30%;234 min
+249;Configuración de archivo config producción;Base-Back;Elemento base;Configuración de archivo config producción;Java;JAVA;60 min;1;0%;60 min;30%;78 min
+250;Control - M 1 job;Base-Back;Elemento base;Control - M 1 job;Java;JAVA;240 min;1;0%;240 min;30%;312 min
+251;Crear de ACP ControlM/JAVA;Base-Doc;Elemento base;Crear de ACP ControlM/JAVA;Doc;Word;120 min;1;0%;120 min;30%;156 min
+252;Crear Tabla Complejidad baja;Base-Back;Elemento base;Crear Tabla Complejidad baja;SQL;SQL;120 min;1;10%;108 min;30%;156 min
+253;Crear Tabla Complejidad media;Base-Back;Elemento base;Crear Tabla Complejidad media;SQL;SQL;240 min;1;18%;197 min;30%;312 min
+254;Crear Tabla Complejidad alta;Base-Back;Elemento base;Crear Tabla Complejidad alta;SQL;SQL;360 min;1;25%;270 min;30%;468 min
+255;Agregar una columna a una tabla;Base-Back;Elemento base;Agregar una columna a una tabla;SQL;SQL;15 min;1;10%;14 min;30%;20 min
+256;Consultar tabla;Base-Back;Elemento base;Consultar tabla;SQL;SQL;90 min;1;0%;90 min;30%;117 min
+257;Insertar registro en tabla;Base-Back;Elemento base;Insertar registro en tabla;SQL;SQL;90 min;1;18%;74 min;30%;117 min
+258;Actualizar registro en tabla;Base-Back;Elemento base;Actualizar registro en tabla;SQL;SQL;90 min;1;18%;74 min;30%;117 min
+259;Borrar registro en tabla;Base-Back;Elemento base;Borrar registro en tabla;SQL;SQL;90 min;1;18%;74 min;30%;117 min
+260;Sp complejidad baja;Base-Back;Elemento base;Sp complejidad baja;SQL;SQL;180 min;1;10%;162 min;30%;234 min
+261;SP complejidad media;Base-Back;Elemento base;SP complejidad media;SQL;SQL;360 min;1;10%;324 min;30%;468 min
+262;SP complejidad alta;Base-Back;Elemento base;SP complejidad alta;SQL;SQL;540 min;1;10%;486 min;30%;702 min
+263;Creación de secuencia;Base-Back;Elemento base;Creación de secuencia;SQL;SQL;20 min;1;0%;20 min;30%;26 min
+264;Creación de consulta complejidad baja;Base-Back;Elemento base;Creación de consulta complejidad baja;SQL;SQL;90 min;1;10%;81 min;30%;117 min
+265;Creación de consulta complejidad media;Base-Back;Elemento base;Creación de consulta complejidad media;SQL;SQL;180 min;1;10%;162 min;30%;234 min
+266;Creación de consulta complejidad alta;Base-Back;Elemento base;Creación de consulta complejidad alta;SQL;SQL;540 min;1;10%;486 min;30%;702 min
+267;Uso de logs de BD en SP;Base-Back;Elemento base;Uso de logs de BD en SP;SQL;SQL;60 min;1;0%;60 min;30%;78 min
+268;Trigger complejidad baja;Base-Back;Elemento base;Trigger complejidad baja;SQL;SQL;90 min;1;0%;90 min;30%;117 min
+269;Trigger complejidad media;Base-Back;Elemento base;Trigger complejidad media;SQL;SQL;60 min;1;0%;60 min;30%;78 min
+270;Trigger complejidad alta;Base-Back;Elemento base;Trigger complejidad alta;SQL;SQL;180 min;1;0%;180 min;30%;234 min
+271;Particionamiento de tablas;Base-Back;Elemento base;Particionamiento de tablas;SQL;SQL;120 min;1;10%;108 min;30%;156 min
+272;Creación de Scripts;Base-Back;Elemento base;Creación de Scripts;SQL;SQL;120 min;1;0%;120 min;30%;156 min
+273;Creación de artefactos;Base-Back;Elemento base;Creación de artefactos;SQL;SQL;30 min;1;0%;30 min;30%;39 min
+274;Crear de ACP BD;Base-Doc;Doc;Crear de ACP BD;SQL;SQL;90 min;1;0%;90 min;30%;117 min
+275;Pruebas scripts;Base-Back;Elemento base;Pruebas scripts;SQL;SQL;60 min;1;0%;60 min;30%;78 min
+276;Pruebas desarrollador;Base-Back;Elemento base;Pruebas desarrollador;SQL;SQL;90 min;1;0%;90 min;30%;117 min
+277;Borrar Tabla;Base-Back;Elemento base;Borrar Tabla;SQL;SQL;20 min;1;10%;18 min;30%;26 min
+81;TextView;Base-Front;Elemento base;Estilos;Java;Android;20 min;1;0%;20 min;30%;26 min
+81;ImageView;Base-Front;Elemento base;xml;Java;Android;12 min;1;0%;12 min;30%;16 min
+82;ImageView;Base-Front;Elemento base;Estilos;Java;Android;20 min;1;15%;17 min;30%;26 min
+83;ViewPager;Base-Front;Contenedor;xml;Java;Android;80 min;1;12%;70 min;30%;104 min
+278;Documento Cero App;Base-Doc;Doc;docx;Doc;Word;480 min;1;0%;480 min;30%;624 min
+279;Result Screen page;Base-Front;Elemento base;Maquetación;JavaScript;React_Native;30 min;1;15%;26 min;30%;39 min
+279;Result Screen page;Base-Front;Elemento base;Estilos;JavaScript;React_Native;45 min;1;10%;41 min;30%;59 min
+279;Result Screen page;Base-Front;Elemento base;HandleClick;JavaScript;React_Native;20 min;1;10%;18 min;30%;26 min

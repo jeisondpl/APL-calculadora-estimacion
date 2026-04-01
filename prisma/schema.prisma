@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── CATÁLOGOS ────────────────────────────────────────────────────────────────
+
+model Lenguaje {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  componentes Componente[]
+
+  @@map("lenguajes")
+}
+
+model Tecnologia {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  componentes Componente[]
+
+  @@map("tecnologias")
+}
+
+model Grupo {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  componentes Componente[]
+
+  @@map("grupos")
+}
+
+model TipoComponente {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  componentes Componente[]
+
+  @@map("tipos_componente")
+}
+
+// ─── COMPONENTE ───────────────────────────────────────────────────────────────
+
+model Componente {
+  id               Int      @id @default(autoincrement())
+  // id original del CSV — NO es PK, puede repetirse con distintos nombres
+  idCsv            Int      @map("id_csv")
+  nombreComponente String   @db.VarChar(200) @map("nombre_componente")
+  publicar         Boolean  @default(true)
+  activo           Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  grupoId      Int            @map("grupo_id")
+  tipoId       Int            @map("tipo_id")
+  lenguajeId   Int            @map("lenguaje_id")
+  tecnologiaId Int            @map("tecnologia_id")
+
+  grupo      Grupo          @relation(fields: [grupoId],      references: [id])
+  tipo       TipoComponente @relation(fields: [tipoId],       references: [id])
+  lenguaje   Lenguaje       @relation(fields: [lenguajeId],   references: [id])
+  tecnologia Tecnologia     @relation(fields: [tecnologiaId], references: [id])
+
+  variables       VariableComponente[]
+  itemsEstimacion EstimacionItem[]
+
+  @@unique([idCsv, nombreComponente, lenguajeId, tecnologiaId], name: "uq_componente_clave")
+  @@index([grupoId])
+  @@index([tipoId])
+  @@index([lenguajeId])
+  @@index([tecnologiaId])
+  @@map("componentes")
+}
+
+// Una fila del CSV = un Componente + N VariableComponente (una por "Nombre Variables")
+model VariableComponente {
+  id              Int      @id @default(autoincrement())
+  nombreVariable  String   @db.VarChar(200) @map("nombre_variable")
+  tiempoBaseMin   Int      @map("tiempo_base_min")        // minutos enteros
+  pctCopilot      Int      @default(0) @map("pct_copilot") // 0-100
+  tiempoCopilotMin Int     @map("tiempo_copilot_min")
+  pctTme          Int      @default(0) @map("pct_tme")     // 0-100
+  tiempoTmeMin    Int      @map("tiempo_tme_min")
+  rawOriginal     String?  @db.Text @map("raw_original")  // fila CSV original (trazabilidad)
+  activo          Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  componenteId Int        @map("componente_id")
+  componente   Componente @relation(fields: [componenteId], references: [id], onDelete: Cascade)
+
+  @@index([componenteId])
+  @@map("variables_componente")
+}
+
+// ─── ESTIMACIÓN ───────────────────────────────────────────────────────────────
+
+model Estimacion {
+  id              Int      @id @default(autoincrement())
+  nombre          String?  @db.VarChar(200)
+  descripcion     String?  @db.Text
+  totalBaseMin    Int      @default(0) @map("total_base_min")
+  totalCopilotMin Int      @default(0) @map("total_copilot_min")
+  totalTmeMin     Int      @default(0) @map("total_tme_min")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  items EstimacionItem[]
+
+  @@map("estimaciones")
+}
+
+// Pivot: qué componentes y en qué cantidad forman esta estimación
+model EstimacionItem {
+  id               Int      @id @default(autoincrement())
+  cantidad         Int      @default(1)
+  tiempoBaseMin    Int      @map("tiempo_base_min")
+  tiempoCopilotMin Int      @map("tiempo_copilot_min")
+  tiempoTmeMin     Int      @map("tiempo_tme_min")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  estimacionId Int        @map("estimacion_id")
+  componenteId Int        @map("componente_id")
+
+  estimacion Estimacion @relation(fields: [estimacionId], references: [id], onDelete: Cascade)
+  componente Componente @relation(fields: [componenteId], references: [id])
+
+  @@index([estimacionId])
+  @@index([componenteId])
+  @@map("estimacion_items")
+}
