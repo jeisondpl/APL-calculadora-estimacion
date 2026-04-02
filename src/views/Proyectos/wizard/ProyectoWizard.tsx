@@ -20,16 +20,26 @@ export function ProyectoWizard({ editingId }: { editingId?: number }) {
 
   const handleSave = async () => {
     setSaving(true)
+    const { noPrefas } = datosGenerales
     const payload = {
       ...datosGenerales,
-      actividades: actividades.map(a => ({
-        ...a,
-        componentes: a.componentes.map(c => ({
-          componenteId: c.componenteId,
-          cantidad:     c.cantidad,
-          reutilizar:   c.reutilizar,
-        })),
-      })),
+      actividades: actividades.map(a => {
+        // Para actividades base: calcular jornadas = (noPrefas × Σ horas) / 8
+        let jornadas = a.jornadas
+        if (a.isDefault && noPrefas > 0) {
+          const suma = (a.tiemposEstimador ?? []).reduce((s, t) => s + t.horas, 0)
+          jornadas = suma > 0 ? +((noPrefas * suma) / 8.8).toFixed(2) : 0
+        }
+        return {
+          ...a,
+          jornadas,
+          componentes: a.componentes.map(c => ({
+            componenteId: c.componenteId,
+            cantidad:     c.cantidad,
+            reutilizar:   c.reutilizar,
+          })),
+        }
+      }),
     }
 
     const result = editingId

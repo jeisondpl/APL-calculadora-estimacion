@@ -14,3 +14,10 @@ export async function requireRole(...roles: Rol[]) {
   }
   return null // autorizado
 }
+
+export async function getSessionUser() {
+  const session = await auth()
+  if (!session) return null
+  const user = session.user as unknown as { rol?: string; userId?: number }
+  return { rol: user.rol ?? '', userId: user.userId ?? 0 }
+}

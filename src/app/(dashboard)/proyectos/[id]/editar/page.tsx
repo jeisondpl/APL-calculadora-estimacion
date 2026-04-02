@@ -32,8 +32,10 @@ export default function EditarProyectoPage({
           objetivo:        p.objetivo        ?? '',
           fechaEstimacion: p.fechaEstimacion ? p.fechaEstimacion.slice(0, 10) : '',
           fechaEjecucion:  p.fechaEjecucion  ? p.fechaEjecucion.slice(0, 10)  : '',
-          estimadoPor:     p.estimadoPor     ?? '',
-          supervisadoPor:  p.supervisadoPor  ?? '',
+          estimadorIds:      (p.estimadores ?? []).map((e: { id: number }) => e.id),
+          supervisadoPor:    p.supervisadoPor    ?? '',
+          noPrefas:          (p as unknown as { noPrefas?: number }).noPrefas          ?? 0,
+          tiempoSesionHoras: (p as unknown as { tiempoSesionHoras?: number }).tiempoSesionHoras ?? 0,
         },
         p.actividades.map(a => ({
           nombre:      a.nombre,
@@ -43,6 +45,9 @@ export default function EditarProyectoPage({
           fechaInicio: a.fechaInicio ? a.fechaInicio.slice(0, 10) : undefined,
           fechaFin:    a.fechaFin    ? a.fechaFin.slice(0, 10)    : undefined,
           orden:       a.orden,
+          creadoPorId:      a.creadoPorId       ?? null,
+          creadoPorNombre:  a.creadoPorNombre   ?? null,
+          tiemposEstimador: (a as unknown as { tiemposEstimador?: { userId: number; nombre: string; horas: number }[] }).tiemposEstimador ?? [],
           componentes: a.componentes.map(c => ({
             componenteId:     c.componenteId,
             nombreComponente: c.nombreComponente,

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useWizardStore } from '@/modules/proyectos'
 import { useComponentesController } from '@/modules/componentes'
 import { Button, Badge } from '@/shared/components/ui'
@@ -174,13 +175,29 @@ function ComponenteModal({
 
 // ─── Tabla agrupada de actividades base (isDefault) ──────────────────────────
 
-function ActividadesBaseTable() {
-  const { actividades, updateActividad } = useWizardStore()
-  const defaults = actividades
-    .map((a, idx) => ({ a, idx }))
-    .filter(({ a }) => a.isDefault)
+function ActividadesBaseTable({ currentUserId, currentUserName, currentRol }: { currentUserId: number | null; currentUserName: string | null; currentRol: string }) {
+  const { actividades, datosGenerales, setDatosGenerales, setTiempoEstimador } = useWizardStore()
+  const defaults = actividades.map((a, idx) => ({ a, idx })).filter(({ a }) => a.isDefault)
 
   if (defaults.length === 0) return null
+
+  const { noPrefas, tiempoSesionHoras } = datosGenerales
+  const canEditSesion = currentRol === 'SUPERUSUARIO' || currentRol === 'PRODUCT_OWNER'
+
+  // Collect all estimadores present across all activities
+  const estimadorMap = new Map<number, string>()
+  if (currentUserId && currentUserName) estimadorMap.set(currentUserId, currentUserName)
+  defaults.forEach(({ a }) =>
+    (a.tiemposEstimador ?? []).forEach(t => { if (!estimadorMap.has(t.userId)) estimadorMap.set(t.userId, t.nombre) })
+  )
+  const estimadores = Array.from(estimadorMap.entries()).map(([id, nombre]) => ({ id, nombre }))
+
+  // Formula: Jornadas = (noPrefas × Σ horas_estimadores) / 8
+  const calcJornadas = (a: typeof defaults[0]['a']) => {
+    const suma = (a.tiemposEstimador ?? []).reduce((s, t) => s + t.horas, 0)
+    if (!noPrefas || suma === 0) return null
+    return +((noPrefas * suma) / 8.8).toFixed(2)
+  }
 
   return (
     <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--color-border)' }}>
@@ -188,54 +205,152 @@ function ActividadesBaseTable() {
       <div className="px-4 py-3" style={{ backgroundColor: 'var(--color-petroleum)' }}>
         <p className="text-sm font-semibold text-white">Actividades base</p>
         <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-          {defaults.length} ítems · ingresa las jornadas invertidas en cada uno
+          Ingresa el tiempo invertido por cada estimador en cada sesión
         </p>
       </div>
 
+      {/* Campos globales: No. prefas + Tiempo sesión */}
+      <div
+        className="px-4 py-3 flex flex-wrap gap-6 border-b"
+        style={{ backgroundColor: 'rgba(0,66,84,0.04)', borderColor: 'var(--color-border)' }}
+      >
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--color-text-soft)' }}>
+            No. prefas / sesiones
+          </label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            readOnly={!canEditSesion}
+            value={noPrefas || ''}
+            onChange={e => canEditSesion && setDatosGenerales({ ...datosGenerales, noPrefas: e.target.value === '' ? 0 : parseInt(e.target.value) })}
+            placeholder="0"
+            className="w-20 px-2 py-1 text-sm rounded-md border outline-none"
+            style={{
+              borderColor: 'var(--color-border)',
+              backgroundColor: canEditSesion ? 'var(--color-surface)' : 'transparent',
+              color: 'var(--color-text)',
+              cursor: canEditSesion ? 'text' : 'not-allowed',
+              opacity: canEditSesion ? 1 : 0.6,
+            }}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--color-text-soft)' }}>
+            Tiempo por sesión
+          </label>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={0}
+              step={0.5}
+              readOnly={!canEditSesion}
+              value={tiempoSesionHoras || ''}
+              onChange={e => canEditSesion && setDatosGenerales({ ...datosGenerales, tiempoSesionHoras: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+              placeholder="0.0"
+              className="w-20 px-2 py-1 text-sm rounded-md border outline-none"
+              style={{
+                borderColor: 'var(--color-border)',
+                backgroundColor: canEditSesion ? 'var(--color-surface)' : 'transparent',
+                color: 'var(--color-text)',
+                cursor: canEditSesion ? 'text' : 'not-allowed',
+                opacity: canEditSesion ? 1 : 0.6,
+              }}
+            />
+            <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>h</span>
+          </div>
+        </div>
+        {noPrefas > 0 && (
+          <span className="text-xs self-center px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0,66,84,0.1)', color: 'var(--color-petroleum)' }}>
+            Jornadas = (prefas × Σ horas) ÷ 8.8
+          </span>
+        )}
+      </div>
+
       {/* Tabla */}
-      <table className="w-full text-sm">
-        <thead>
-          <tr style={{ backgroundColor: 'rgba(0,66,84,0.06)', borderBottom: '1px solid var(--color-border)' }}>
-            <th className="px-3 py-2 text-left text-xs font-medium w-8" style={{ color: 'var(--color-text-soft)' }}>#</th>
-            <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>Actividad</th>
-            <th className="px-3 py-2 text-left text-xs font-medium hidden md:table-cell w-36" style={{ color: 'var(--color-text-soft)' }}>Bloque</th>
-            <th className="px-3 py-2 text-left text-xs font-medium w-44" style={{ color: 'var(--color-text-soft)' }}>Jornadas</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
-          {defaults.map(({ a, idx }, row) => (
-            <tr key={idx} className="hover:bg-[rgba(0,66,84,0.02)] transition-colors">
-              <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--color-text-soft)' }}>{row + 1}</td>
-              <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{a.nombre}</td>
-              <td className="px-3 py-2.5 hidden md:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>
-                {a.bloque || '—'}
-              </td>
-              <td className="px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={a.jornadas ?? ''}
-                    onChange={e => {
-                      const val = e.target.value === '' ? undefined : parseFloat(e.target.value)
-                      updateActividad(idx, { ...a, jornadas: val })
-                    }}
-                    placeholder="0.00"
-                    className="w-24 px-2 py-1 text-sm rounded-md border outline-none"
-                    style={{
-                      borderColor: 'var(--color-border)',
-                      backgroundColor: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                    }}
-                  />
-                  <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>jornadas</span>
-                </div>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr style={{ backgroundColor: 'rgba(0,66,84,0.06)', borderBottom: '1px solid var(--color-border)' }}>
+              <th className="px-3 py-2 text-left text-xs font-medium w-8" style={{ color: 'var(--color-text-soft)' }}>#</th>
+              <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>Actividad</th>
+              {estimadores.map(est => (
+                <th key={est.id} className="px-3 py-2 text-center text-xs font-medium w-32" style={{ color: est.id === currentUserId ? 'var(--color-petroleum)' : 'var(--color-text-soft)' }}>
+                  <span className="block truncate max-w-[7rem]" title={est.nombre}>
+                    {est.id === currentUserId ? '👤 Tú' : est.nombre.split(' ')[0]}
+                  </span>
+                  <span className="font-normal opacity-70">(h/sesión)</span>
+                </th>
+              ))}
+              <th className="px-3 py-2 text-center text-xs font-medium w-24" style={{ color: 'var(--color-text-soft)' }}>
+                Jornadas
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+            {defaults.map(({ a, idx }, row) => {
+              const jornadas = calcJornadas(a)
+              return (
+                <tr key={idx} className="hover:bg-[rgba(0,66,84,0.02)] transition-colors">
+                  <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--color-text-soft)' }}>{row + 1}</td>
+                  <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{a.nombre}</td>
+                  {estimadores.map(est => {
+                    const entry = (a.tiemposEstimador ?? []).find(t => t.userId === est.id)
+                    const isMe  = est.id === currentUserId
+                    return (
+                      <td key={est.id} className="px-3 py-2 text-center">
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.5}
+                          readOnly={!isMe}
+                          value={entry?.horas ?? ''}
+                          onChange={e => {
+                            if (!isMe) return
+                            const h = e.target.value === '' ? 0 : parseFloat(e.target.value)
+                            setTiempoEstimador(idx, est.id, est.nombre, h)
+                          }}
+                          placeholder="0.0"
+                          className="w-20 px-2 py-1 text-sm rounded-md border outline-none text-center"
+                          style={{
+                            borderColor:     'var(--color-border)',
+                            backgroundColor: isMe ? 'var(--color-surface)' : 'transparent',
+                            color:           'var(--color-text)',
+                            opacity:         !isMe && !entry ? 0.3 : 1,
+                            cursor:          !isMe ? 'default' : 'text',
+                          }}
+                        />
+                      </td>
+                    )
+                  })}
+                  <td className="px-3 py-2.5 text-center">
+                    {jornadas !== null ? (
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-petroleum)' }}>
+                        {jornadas}
+                      </span>
+                    ) : (
+                      <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+          {defaults.some(({ a }) => calcJornadas(a) !== null) && (
+            <tfoot>
+              <tr style={{ backgroundColor: 'rgba(0,66,84,0.06)', borderTop: '1px solid var(--color-border)' }}>
+                <td colSpan={2 + estimadores.length} className="px-3 py-2 text-right text-xs font-semibold" style={{ color: 'var(--color-text-soft)' }}>
+                  Total actividades base:
+                </td>
+                <td className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--color-petroleum)' }}>
+                  {defaults.reduce((s, { a }) => s + (calcJornadas(a) ?? 0), 0).toFixed(2)}
+                </td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
     </div>
   )
 }
@@ -245,13 +360,17 @@ function ActividadesBaseTable() {
 function ActividadPanel({
   actIdx,
   allItems,
+  currentUserId,
 }: {
-  actIdx:   number
-  allItems: IResponseComponente[]
+  actIdx:        number
+  allItems:      IResponseComponente[]
+  currentUserId: number | null
 }) {
   const { actividades, addComponente, updateComponente, removeComponente } = useWizardStore()
   const actividad  = actividades[actIdx]
   const [modal, setModal] = useState(false)
+
+  const locked = !!(actividad.creadoPorId && actividad.creadoPorId !== currentUserId)
 
   const handleAccept = (items: IResponseComponente[]) => {
     items.forEach(c => {
@@ -292,16 +411,24 @@ function ActividadPanel({
         {/* Header */}
         <div
           className="px-4 py-3 rounded-t-lg flex items-start justify-between gap-4"
-          style={{ backgroundColor: 'var(--color-petroleum)' }}
+          style={{ backgroundColor: locked ? 'rgba(0,66,84,0.55)' : 'var(--color-petroleum)' }}
         >
           <div className="min-w-0">
             <p className="text-sm font-semibold text-white truncate">
               {actIdx + 1}. {actividad.nombre}
             </p>
-            <div className="flex gap-3 mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
+            <div className="flex flex-wrap gap-2 mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
               {actividad.bloque && <span>{actividad.bloque}</span>}
               {actividad.componentes.length > 0 && (
                 <span>· {actividad.componentes.length} componente{actividad.componentes.length !== 1 ? 's' : ''}</span>
+              )}
+              {actividad.creadoPorNombre && (
+                <span
+                  className="px-2 py-0.5 rounded-full font-medium"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
+                >
+                  {locked ? `🔒 ${actividad.creadoPorNombre}` : '👤 Tú'}
+                </span>
               )}
             </div>
           </div>
@@ -312,13 +439,15 @@ function ActividadPanel({
                 <p>{totalH}h · {totalJ}j</p>
               </div>
             )}
-            <button
-              onClick={() => setModal(true)}
-              className="px-3 py-1.5 text-xs rounded-md font-medium transition-colors"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
-            >
-              + Agregar
-            </button>
+            {!locked && (
+              <button
+                onClick={() => setModal(true)}
+                className="px-3 py-1.5 text-xs rounded-md font-medium transition-colors"
+                style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
+              >
+                + Agregar
+              </button>
+            )}
           </div>
         </div>
 
@@ -351,41 +480,49 @@ function ActividadPanel({
                       {comp.tecnologiaNombre}
                     </td>
                     <td className="px-3 py-2 text-center">
-                      <div
-                        className="flex items-center justify-center gap-1 border rounded overflow-hidden mx-auto w-fit"
-                        style={{ borderColor: 'var(--color-border)' }}
-                      >
-                        <button
-                          className="px-1.5 py-0.5 hover:bg-gray-100 disabled:opacity-40"
-                          disabled={comp.cantidad <= 1}
-                          onClick={() => updateComponente(actIdx, comp.componenteId, { cantidad: comp.cantidad - 1 })}
-                        >−</button>
-                        <span className="px-2 font-medium min-w-[1.5rem] text-center" style={{ color: 'var(--color-text)' }}>
-                          {comp.cantidad}
-                        </span>
-                        <button
-                          className="px-1.5 py-0.5 hover:bg-gray-100"
-                          onClick={() => updateComponente(actIdx, comp.componenteId, { cantidad: comp.cantidad + 1 })}
-                        >+</button>
-                      </div>
+                      {locked ? (
+                        <span className="font-medium text-xs" style={{ color: 'var(--color-text)' }}>{comp.cantidad}</span>
+                      ) : (
+                        <div
+                          className="flex items-center justify-center gap-1 border rounded overflow-hidden mx-auto w-fit"
+                          style={{ borderColor: 'var(--color-border)' }}
+                        >
+                          <button
+                            className="px-1.5 py-0.5 hover:bg-gray-100 disabled:opacity-40"
+                            disabled={comp.cantidad <= 1}
+                            onClick={() => updateComponente(actIdx, comp.componenteId, { cantidad: comp.cantidad - 1 })}
+                          >−</button>
+                          <span className="px-2 font-medium min-w-[1.5rem] text-center" style={{ color: 'var(--color-text)' }}>
+                            {comp.cantidad}
+                          </span>
+                          <button
+                            className="px-1.5 py-0.5 hover:bg-gray-100"
+                            onClick={() => updateComponente(actIdx, comp.componenteId, { cantidad: comp.cantidad + 1 })}
+                          >+</button>
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-center">
                       <input
                         type="checkbox"
                         checked={comp.reutilizar}
-                        onChange={e => updateComponente(actIdx, comp.componenteId, { reutilizar: e.target.checked })}
-                        className="w-4 h-4 cursor-pointer accent-[var(--color-petroleum)]"
+                        disabled={locked}
+                        onChange={e => !locked && updateComponente(actIdx, comp.componenteId, { reutilizar: e.target.checked })}
+                        className="w-4 h-4 accent-[var(--color-petroleum)]"
+                        style={{ cursor: locked ? 'not-allowed' : 'pointer', opacity: locked ? 0.5 : 1 }}
                       />
                     </td>
                     <td className="px-3 py-2 text-right font-medium" style={{ color: 'var(--color-petroleum)' }}>
                       {formatMinutes((comp.tiempoBaseMin ?? 0) * comp.cantidad)}
                     </td>
                     <td className="px-3 py-2">
-                      <button
-                        onClick={() => removeComponente(actIdx, comp.componenteId)}
-                        className="hover:opacity-70 transition-opacity"
-                        style={{ color: '#C0392B' }}
-                      >✕</button>
+                      {!locked && (
+                        <button
+                          onClick={() => removeComponente(actIdx, comp.componenteId)}
+                          className="hover:opacity-70 transition-opacity"
+                          style={{ color: '#C0392B' }}
+                        >✕</button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -407,16 +544,24 @@ function ActividadPanel({
 
         {actividad.componentes.length === 0 && (
           <div className="px-4 py-5 text-center">
-            <p className="text-xs mb-3" style={{ color: 'var(--color-text-soft)' }}>
-              Sin componentes. Abre el selector para agregar.
-            </p>
-            <button
-              onClick={() => setModal(true)}
-              className="px-4 py-2 text-xs rounded-lg border transition-colors hover:bg-[rgba(0,66,84,0.06)]"
-              style={{ borderColor: 'var(--color-petroleum)', color: 'var(--color-petroleum)' }}
-            >
-              + Agregar componentes
-            </button>
+            {locked ? (
+              <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                🔒 Solo lectura · esta actividad fue creada por otro estimador
+              </p>
+            ) : (
+              <>
+                <p className="text-xs mb-3" style={{ color: 'var(--color-text-soft)' }}>
+                  Sin componentes. Abre el selector para agregar.
+                </p>
+                <button
+                  onClick={() => setModal(true)}
+                  className="px-4 py-2 text-xs rounded-lg border transition-colors hover:bg-[rgba(0,66,84,0.06)]"
+                  style={{ borderColor: 'var(--color-petroleum)', color: 'var(--color-petroleum)' }}
+                >
+                  + Agregar componentes
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -435,6 +580,10 @@ export function Step3Construccion({
 }) {
   const { actividades, goToStep } = useWizardStore()
   const { paginado, _list } = useComponentesController()
+  const { data: session } = useSession()
+  const currentUserId   = (session?.user as unknown as { userId?: number })?.userId ?? null
+  const currentUserName = session?.user?.name ?? null
+  const currentRol      = (session?.user as unknown as { rol?: string })?.rol ?? ''
 
   // Carga única de componentes a nivel de Step3
   useEffect(() => { _list({ limit: 500 }) }, [_list])
@@ -462,12 +611,12 @@ export function Step3Construccion({
       )}
 
       {/* Actividades base agrupadas */}
-      <ActividadesBaseTable />
+      <ActividadesBaseTable currentUserId={currentUserId} currentUserName={currentUserName} currentRol={currentRol} />
 
       {/* Actividades con componentes */}
       {actividades.map((act, idx) =>
         act.isDefault ? null : (
-          <ActividadPanel key={idx} actIdx={idx} allItems={allItems} />
+          <ActividadPanel key={idx} actIdx={idx} allItems={allItems} currentUserId={currentUserId} />
         )
       )}
 

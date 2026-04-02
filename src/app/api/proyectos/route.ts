@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { successResponse, errorResponse } from '@/shared/lib/HttpResponse'
-import { requireRole } from '@/shared/lib/requireRole'
+import { requireRole, getSessionUser } from '@/shared/lib/requireRole'
 import type { IArgsCreateProyecto, IActividad } from '@/modules/proyectos'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -147,14 +147,27 @@ export async function GET(req: NextRequest) {
     const page  = Math.max(1, parseInt(searchParams.get('page')  ?? '1'))
     const limit = Math.min(50, parseInt(searchParams.get('limit') ?? '10'))
 
+    const sessionUser = await getSessionUser()
+    const currentUserId = sessionUser?.userId ?? 0
+    const currentRol    = sessionUser?.rol     ?? ''
+
+    const isDevOrQA = currentRol === 'DESARROLLADOR' || currentRol === 'QA'
+    const whereClause = isDevOrQA
+      ? { estimadores: { some: { usuarioId: currentUserId } } }
+      : {}
+
     const [items, total] = await Promise.all([
       prisma.proyecto.findMany({
+        where:   whereClause,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-        include: { actividades: { select: { id: true } } },
+        include: {
+          actividades: { select: { id: true } },
+          estimadores: { include: { usuario: { select: { id: true, nombre: true } } } },
+        },
       }),
-      prisma.proyecto.count(),
+      prisma.proyecto.count({ where: whereClause }),
     ])
 
     // Traer estado via raw para no depender del cliente Prisma generado
@@ -179,6 +192,7 @@ export async function GET(req: NextRequest) {
         actividadesCount: p.actividades.length,
         estado:          estadoMap.get(p.id) ?? 'ABIERTO',
         createdAt:       p.createdAt.toISOString(),
+        estimadores:     p.estimadores.map(e => ({ id: e.usuario.id, nombre: e.usuario.nombre })),
       })),
       total, page, limit,
     }
@@ -203,6 +217,18 @@ export async function POST(req: NextRequest) {
     const { actividadesData, proyTotalBase, proyTotalCopilot, proyTotalTme } =
       await buildItemsAndTotals(body.actividades ?? [])
 
+    const estimadorIds = body.estimadorIds ?? []
+
+    // Fetch estimador names to build estimadoPor display string
+    let estimadoPorStr: string | null = body.estimadoPor ?? null
+    if (estimadorIds.length > 0) {
+      const usuarios = await prisma.usuario.findMany({
+        where: { id: { in: estimadorIds } },
+        select: { nombre: true },
+      })
+      estimadoPorStr = usuarios.map(u => u.nombre).join(', ') || null
+    }
+
     const proyecto = await prisma.proyecto.create({
       data: {
         requerimiento:   body.requerimiento.trim(),
@@ -210,14 +236,41 @@ export async function POST(req: NextRequest) {
         objetivo:        body.objetivo        ?? null,
         fechaEstimacion: toDate(body.fechaEstimacion),
         fechaEjecucion:  toDate(body.fechaEjecucion),
-        estimadoPor:     body.estimadoPor     ?? null,
+        estimadoPor:     estimadoPorStr,
         supervisadoPor:  body.supervisadoPor  ?? null,
         totalBaseMin:    proyTotalBase,
         totalCopilotMin: proyTotalCopilot,
         totalTmeMin:     proyTotalTme,
         actividades: { create: actividadesData },
+        ...(estimadorIds.length > 0 && {
+          estimadores: {
+            create: estimadorIds.map(uid => ({ usuarioId: uid })),
+          },
+        }),
       },
     })
+
+    // Set creado_por_id, datos_extra on newly created activities (Prisma client doesn't know these fields)
+    for (let i = 0; i < (body.actividades ?? []).length; i++) {
+      const act       = body.actividades![i]
+      const orden     = actividadesData[i].orden
+      const creadoPorId = act.creadoPorId ?? null
+      const datosExtra  = act.tiemposEstimador?.length
+        ? JSON.stringify({ tiemposEstimador: act.tiemposEstimador })
+        : null
+      if (creadoPorId || datosExtra) {
+        await prisma.$executeRaw`
+          UPDATE actividades
+          SET    creado_por_id = ${creadoPorId},
+                 datos_extra   = ${datosExtra}::jsonb
+          WHERE  proyecto_id   = ${proyecto.id}
+          AND    orden          = ${orden}`
+      }
+    }
+    // Save no_prefas / tiempo_sesion_horas
+    const noPrefas          = body.noPrefas          ?? 0
+    const tiempoSesionHoras = body.tiempoSesionHoras ?? 0
+    await prisma.$executeRaw`UPDATE proyectos SET no_prefas = ${noPrefas}, tiempo_sesion_horas = ${tiempoSesionHoras} WHERE id = ${proyecto.id}`
 
     const full = await fetchProyecto(proyecto.id)
     return NextResponse.json(successResponse(formatProyecto(full)), { status: 201 })

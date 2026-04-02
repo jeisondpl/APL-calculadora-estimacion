@@ -2,23 +2,27 @@ import { create } from 'zustand'
 import type { IActividad, IActividadComponente } from '../../domain/entities/Proyectos.entities'
 
 export interface DatosGenerales {
-  requerimiento:   string
-  nombreProyecto:  string
-  objetivo:        string
-  fechaEstimacion: string
-  fechaEjecucion:  string
-  estimadoPor:     string
-  supervisadoPor:  string
+  requerimiento:    string
+  nombreProyecto:   string
+  objetivo:         string
+  fechaEstimacion:  string
+  fechaEjecucion:   string
+  estimadorIds:     number[]
+  supervisadoPor:   string
+  noPrefas:         number
+  tiempoSesionHoras: number
 }
 
 const DATOS_INIT: DatosGenerales = {
-  requerimiento:   '',
-  nombreProyecto:  '',
-  objetivo:        '',
-  fechaEstimacion: '',
-  fechaEjecucion:  '',
-  estimadoPor:     '',
-  supervisadoPor:  '',
+  requerimiento:    '',
+  nombreProyecto:   '',
+  objetivo:         '',
+  fechaEstimacion:  '',
+  fechaEjecucion:   '',
+  estimadorIds:     [],
+  supervisadoPor:   '',
+  noPrefas:         1,
+  tiempoSesionHoras: 1,
 }
 
 export const DEFAULT_ACTIVITY_NAMES = new Set([
@@ -60,6 +64,9 @@ interface WizardState {
   addComponente:    (actIdx: number, c: IActividadComponente) => void
   updateComponente: (actIdx: number, compId: number, c: Partial<IActividadComponente>) => void
   removeComponente: (actIdx: number, compId: number) => void
+
+  // Tiempo estimador en actividades base
+  setTiempoEstimador: (actIdx: number, userId: number, nombre: string, horas: number) => void
 
   // Reset
   reset: () => void
@@ -115,6 +122,19 @@ export const useWizardStore = create<WizardState>((set) => ({
       actividades: s.actividades.map((a, i) =>
         i === actIdx ? { ...a, componentes: a.componentes.filter(c => c.componenteId !== compId) } : a
       ),
+    })),
+
+  setTiempoEstimador: (actIdx, userId, nombre, horas) =>
+    set(s => ({
+      actividades: s.actividades.map((a, i) => {
+        if (i !== actIdx) return a
+        const prev = a.tiemposEstimador ?? []
+        const exists = prev.find(t => t.userId === userId)
+        const tiemposEstimador = exists
+          ? prev.map(t => t.userId === userId ? { ...t, horas } : t)
+          : [...prev, { userId, nombre, horas }]
+        return { ...a, tiemposEstimador }
+      }),
     })),
 
   reset: () => set({ step: 1, editingId: null, datosGenerales: DATOS_INIT, actividades: ACTIVIDADES_DEFAULT.map(a => ({ ...a, componentes: [] })) }),

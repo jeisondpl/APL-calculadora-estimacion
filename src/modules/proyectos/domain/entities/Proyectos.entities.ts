@@ -25,6 +25,9 @@ export interface IActividad {
   fechaFin?:   string
   orden?:      number
   isDefault?:  boolean   // actividades precargadas, no eliminables
+  creadoPorId?:      number | null
+  creadoPorNombre?:  string | null
+  tiemposEstimador?: { userId: number; nombre: string; horas: number }[]
   componentes: IActividadComponente[]
   // totales calculados
   totalBaseMin?:    number
@@ -42,6 +45,9 @@ export interface IArgsCreateProyecto {
   fechaEjecucion?:  string
   estimadoPor?:    string
   supervisadoPor?: string
+  estimadorIds?:   number[]
+  noPrefas?:       number
+  tiempoSesionHoras?: number
   actividades:     IActividad[]
 }
 
@@ -70,12 +76,15 @@ export interface IResponseProyectoSummary {
   actividadesCount: number
   estado:         string
   createdAt:      string
+  estimadores:    { id: number; nombre: string }[]
 }
 
 export interface IResponseProyecto extends IResponseProyectoSummary {
-  fechaEjecucion: string | null
-  actividades:    IResponseActividad[]
-  updatedAt:      string
+  fechaEjecucion:    string | null
+  noPrefas:          number | null
+  tiempoSesionHoras: number | null
+  actividades:       IResponseActividad[]
+  updatedAt:         string
 }
 
 export interface IResponseActividad {
@@ -87,6 +96,9 @@ export interface IResponseActividad {
   fechaInicio: string | null
   fechaFin:    string | null
   orden:       number
+  creadoPorId:      number | null
+  creadoPorNombre:  string | null
+  tiemposEstimador: { userId: number; nombre: string; horas: number }[]
   totalBaseMin:    number
   totalCopilotMin: number
   totalTmeMin:     number

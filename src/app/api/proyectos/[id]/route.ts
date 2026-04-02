@@ -45,6 +45,7 @@ async function fetchProyecto(id: number) {
   return prisma.proyecto.findUniqueOrThrow({
     where: { id },
     include: {
+      estimadores: { include: { usuario: { select: { id: true, nombre: true } } } },
       actividades: {
         orderBy: { orden: 'asc' },
         include: {
@@ -57,7 +58,8 @@ async function fetchProyecto(id: number) {
   })
 }
 
-function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>) {
+type CreadoPorInfo = { id: number | null; nombre: string | null; tiemposEstimador?: { userId: number; nombre: string; horas: number }[] }
+function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>, creadoPorMap?: Map<number, CreadoPorInfo>) {
   return {
     id: p.id, requerimiento: p.requerimiento, nombreProyecto: p.nombreProyecto, objetivo: p.objetivo,
     fechaEstimacion: p.fechaEstimacion?.toISOString() ?? null, fechaEjecucion: p.fechaEjecucion?.toISOString() ?? null,
@@ -65,11 +67,15 @@ function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>) {
     totalBaseMin: p.totalBaseMin, totalCopilotMin: p.totalCopilotMin, totalTmeMin: p.totalTmeMin,
     actividadesCount: p.actividades.length,
     createdAt: p.createdAt.toISOString(), updatedAt: p.updatedAt.toISOString(),
+    estimadores: p.estimadores.map(e => ({ id: e.usuario.id, nombre: e.usuario.nombre })),
     actividades: p.actividades.map(a => ({
       id: a.id, nombre: a.nombre, proceso: a.proceso, bloque: a.bloque,
       jornadas: a.jornadas ? Number(a.jornadas) : null,
       fechaInicio: a.fechaInicio?.toISOString() ?? null, fechaFin: a.fechaFin?.toISOString() ?? null,
       orden: a.orden, totalBaseMin: a.totalBaseMin, totalCopilotMin: a.totalCopilotMin, totalTmeMin: a.totalTmeMin,
+      creadoPorId:      creadoPorMap ? (creadoPorMap.get(a.id)?.id              ?? null) : null,
+      creadoPorNombre:  creadoPorMap ? (creadoPorMap.get(a.id)?.nombre          ?? null) : null,
+      tiemposEstimador: creadoPorMap ? (creadoPorMap.get(a.id)?.tiemposEstimador ?? [])  : [],
       componentes: a.componentes.map(ac => ({
         id: ac.id, componenteId: ac.componenteId,
         nombreComponente: ac.componente.nombreComponente, grupoNombre: ac.componente.grupo.nombre,
@@ -88,10 +94,33 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
     const numId = parseInt(id)
     if (isNaN(numId)) return NextResponse.json(errorResponse('ID inválido', 400), { status: 400 })
     const p = await fetchProyecto(numId)
-    const [estadoRow] = await prisma.$queryRaw<{ estado: string }[]>(
-      Prisma.sql`SELECT estado FROM proyectos WHERE id = ${numId}`
-    )
-    return NextResponse.json(successResponse({ ...formatProyecto(p), estado: estadoRow?.estado ?? 'ABIERTO' }))
+
+    const actIds = p.actividades.map(a => a.id)
+    const [proyRaw, creadoPorRows] = await Promise.all([
+      prisma.$queryRaw<{ estado: string; no_prefas: number | null; tiempo_sesion_horas: string | null }[]>(
+        Prisma.sql`SELECT estado, no_prefas, tiempo_sesion_horas FROM proyectos WHERE id = ${numId}`
+      ).then(r => r[0]),
+      actIds.length > 0
+        ? prisma.$queryRaw<{ id: number; creado_por_id: number | null; creado_por_nombre: string | null; datos_extra: unknown }[]>(
+            Prisma.sql`SELECT a.id, a.creado_por_id, u.nombre AS creado_por_nombre, a.datos_extra FROM actividades a LEFT JOIN usuarios u ON u.id = a.creado_por_id WHERE a.id IN (${Prisma.join(actIds)})`
+          )
+        : Promise.resolve([] as { id: number; creado_por_id: number | null; creado_por_nombre: string | null; datos_extra: unknown }[]),
+    ])
+    const creadoPorMap = new Map(creadoPorRows.map(r => [
+      Number(r.id),
+      {
+        id:              r.creado_por_id ? Number(r.creado_por_id) : null,
+        nombre:          r.creado_por_nombre ?? null,
+        tiemposEstimador: (r.datos_extra as { tiemposEstimador?: { userId: number; nombre: string; horas: number }[] } | null)?.tiemposEstimador ?? [],
+      }
+    ]))
+
+    return NextResponse.json(successResponse({
+      ...formatProyecto(p, creadoPorMap),
+      estado:           proyRaw?.estado           ?? 'ABIERTO',
+      noPrefas:         proyRaw?.no_prefas         ?? 0,
+      tiempoSesionHoras: proyRaw?.tiempo_sesion_horas ? Number(proyRaw.tiempo_sesion_horas) : 0,
+    }))
   } catch (e) {
     const notFound = e instanceof Error && e.message.includes('No record found')
     return NextResponse.json(errorResponse(notFound ? 'Proyecto no encontrado' : (e instanceof Error ? e.message : 'Error'), notFound ? 404 : 500), { status: notFound ? 404 : 500 })
@@ -112,8 +141,21 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
     const { actividadesData, proyTotalBase, proyTotalCopilot, proyTotalTme } =
       await buildItemsAndTotals(body.actividades ?? [])
 
+    const estimadorIds = body.estimadorIds ?? []
+
+    // Fetch estimador names to build estimadoPor display string
+    let estimadoPorStr: string | null = body.estimadoPor ?? null
+    if (estimadorIds.length > 0) {
+      const usuarios = await prisma.usuario.findMany({
+        where: { id: { in: estimadorIds } },
+        select: { nombre: true },
+      })
+      estimadoPorStr = usuarios.map(u => u.nombre).join(', ') || null
+    }
+
     await prisma.$transaction([
       prisma.actividad.deleteMany({ where: { proyectoId: numId } }),
+      prisma.proyectoEstimador.deleteMany({ where: { proyectoId: numId } }),
       prisma.proyecto.update({
         where: { id: numId },
         data: {
@@ -122,18 +164,52 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
           objetivo:        body.objetivo       ?? null,
           fechaEstimacion: toDate(body.fechaEstimacion),
           fechaEjecucion:  toDate(body.fechaEjecucion),
-          estimadoPor:     body.estimadoPor    ?? null,
+          estimadoPor:     estimadoPorStr,
           supervisadoPor:  body.supervisadoPor ?? null,
           totalBaseMin:    proyTotalBase,
           totalCopilotMin: proyTotalCopilot,
           totalTmeMin:     proyTotalTme,
           actividades: { create: actividadesData },
+          ...(estimadorIds.length > 0 && {
+            estimadores: {
+              create: estimadorIds.map(uid => ({ usuarioId: uid })),
+            },
+          }),
         },
       }),
     ])
 
+    // Set creado_por_id, datos_extra on newly created activities (Prisma client doesn't know these fields)
+    for (let i = 0; i < (body.actividades ?? []).length; i++) {
+      const act       = body.actividades![i]
+      const orden     = actividadesData[i].orden
+      const creadoPorId = act.creadoPorId ?? null
+      const datosExtra  = act.tiemposEstimador?.length
+        ? JSON.stringify({ tiemposEstimador: act.tiemposEstimador })
+        : null
+      if (creadoPorId || datosExtra) {
+        await prisma.$executeRaw`
+          UPDATE actividades
+          SET    creado_por_id = ${creadoPorId},
+                 datos_extra   = ${datosExtra}::jsonb
+          WHERE  proyecto_id   = ${numId}
+          AND    orden          = ${orden}`
+      }
+    }
+    // Save no_prefas / tiempo_sesion_horas
+    const noPrefas         = body.noPrefas         ?? 0
+    const tiempoSesionHoras = body.tiempoSesionHoras ?? 0
+    await prisma.$executeRaw`UPDATE proyectos SET no_prefas = ${noPrefas}, tiempo_sesion_horas = ${tiempoSesionHoras} WHERE id = ${numId}`
+
     const full = await fetchProyecto(numId)
-    return NextResponse.json(successResponse(formatProyecto(full)))
+    const actIds = full.actividades.map(a => a.id)
+    const creadoPorRows = actIds.length > 0
+      ? await prisma.$queryRaw<{ id: number; creado_por_id: number | null; creado_por_nombre: string | null }[]>(
+          Prisma.sql`SELECT a.id, a.creado_por_id, u.nombre AS creado_por_nombre FROM actividades a LEFT JOIN usuarios u ON u.id = a.creado_por_id WHERE a.id IN (${Prisma.join(actIds)})`
+        )
+      : []
+    const creadoPorMap = new Map(creadoPorRows.map(r => [Number(r.id), { id: r.creado_por_id ? Number(r.creado_por_id) : null, nombre: r.creado_por_nombre ?? null }]))
+    return NextResponse.json(successResponse(formatProyecto(full, creadoPorMap)))
   } catch (e) {
     return NextResponse.json(errorResponse(e instanceof Error ? e.message : 'Error', 500), { status: 500 })
   }

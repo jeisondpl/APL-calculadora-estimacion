@@ -28,6 +28,9 @@ model Usuario {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt      @map("updated_at")
 
+  proyectosEstimados ProyectoEstimador[]
+  actividadesCreadas Actividad[]
+
   @@map("usuarios")
 }
 
@@ -151,7 +154,8 @@ model Proyecto {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt      @map("updated_at")
 
-  actividades Actividad[]
+  actividades  Actividad[]
+  estimadores  ProyectoEstimador[]
 
   @@map("proyectos")
 }
@@ -169,11 +173,13 @@ model Actividad {
   totalBaseMin    Int @default(0) @map("total_base_min")
   totalCopilotMin Int @default(0) @map("total_copilot_min")
   totalTmeMin     Int @default(0) @map("total_tme_min")
+  creadoPorId Int?     @map("creado_por_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt      @map("updated_at")
 
   proyectoId  Int       @map("proyecto_id")
   proyecto    Proyecto  @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  creadoPor   Usuario?  @relation(fields: [creadoPorId], references: [id], onDelete: SetNull)
 
   componentes ActividadComponente[]
 
@@ -236,4 +242,16 @@ model EstimacionItem {
   @@index([estimacionId])
   @@index([componenteId])
   @@map("estimacion_items")
+}
+
+// ─── PROYECTO ESTIMADORES (pivot) ─────────────────────────────────────────────
+
+model ProyectoEstimador {
+  proyectoId Int      @map("proyecto_id")
+  usuarioId  Int      @map("usuario_id")
+  proyecto   Proyecto @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([proyectoId, usuarioId])
+  @@map("proyecto_estimadores")
 }

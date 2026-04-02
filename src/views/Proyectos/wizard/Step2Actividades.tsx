@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useSession } from 'next-auth/react'
 import { Button, Input, Card } from '@/shared/components/ui'
 import { useWizardStore } from '@/modules/proyectos'
 import type { IActividad } from '@/modules/proyectos'
@@ -82,8 +83,15 @@ export function Step2Actividades() {
   const [adding,     setAdding]     = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
 
+  const { data: session } = useSession()
+  const currentUserId   = (session?.user as unknown as { userId?: number })?.userId ?? null
+  const currentUserName = session?.user?.name ?? null
+
+  const canManage = (act: IActividad) =>
+    !act.isDefault && (!act.creadoPorId || act.creadoPorId === currentUserId)
+
   const handleAdd = (data: ActFormData) => {
-    addActividad({ nombre: data.nombre, bloque: data.bloque || undefined, proceso: undefined, jornadas: undefined, componentes: [] })
+    addActividad({ nombre: data.nombre, bloque: data.bloque || undefined, proceso: undefined, jornadas: undefined, creadoPorId: currentUserId, creadoPorNombre: currentUserName, componentes: [] })
     setAdding(false)
   }
 
@@ -107,6 +115,7 @@ export function Step2Actividades() {
                 <th className="px-3 py-2 text-left font-medium">Nombre actividad</th>
                 <th className="px-3 py-2 text-left font-medium hidden md:table-cell w-40">Bloque</th>
                 <th className="px-3 py-2 text-center font-medium w-24 hidden sm:table-cell">Jornadas</th>
+                <th className="px-3 py-2 text-left font-medium hidden lg:table-cell w-36">Creado por</th>
                 <th className="px-3 py-2 w-20"></th>
               </tr>
             </thead>
@@ -131,9 +140,35 @@ export function Step2Actividades() {
                         ? (act.jornadas ?? '—')
                         : (act.componentes.length > 0 ? act.componentes.length : '—')}
                     </td>
+                    <td className="px-3 py-2.5 hidden lg:table-cell">
+                      {act.isDefault ? (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981' }}
+                        >
+                          Sistema
+                        </span>
+                      ) : act.creadoPorNombre ? (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{
+                            backgroundColor: act.creadoPorId === currentUserId
+                              ? 'rgba(0,66,84,0.1)'
+                              : 'rgba(107,114,128,0.1)',
+                            color: act.creadoPorId === currentUserId
+                              ? 'var(--color-petroleum)'
+                              : 'var(--color-text-soft)',
+                          }}
+                        >
+                          {act.creadoPorId === currentUserId ? 'Tú' : act.creadoPorNombre}
+                        </span>
+                      ) : (
+                        <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
+                      )}
+                    </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex gap-1 justify-end">
-                        {!act.isDefault && (
+                      <div className="flex gap-1 justify-end items-center">
+                        {canManage(act) ? (
                           <>
                             <button
                               onClick={() => { setEditingIdx(idx); setAdding(false) }}
@@ -146,13 +181,19 @@ export function Step2Actividades() {
                               style={{ color: '#C0392B' }}
                             >✕</button>
                           </>
+                        ) : !act.isDefault && (
+                          <span
+                            title="Creada por otro estimador"
+                            className="text-xs px-1.5 py-0.5"
+                            style={{ color: 'var(--color-text-soft)', opacity: 0.5 }}
+                          >🔒</span>
                         )}
                       </div>
                     </td>
                   </tr>
                   {editingIdx === idx && (
                     <tr>
-                      <td colSpan={5} className="px-3 py-2">
+                      <td colSpan={6} className="px-3 py-2">
                         <ActividadForm
                           initial={act}
                           onSave={data => handleUpdate(idx, data)}
