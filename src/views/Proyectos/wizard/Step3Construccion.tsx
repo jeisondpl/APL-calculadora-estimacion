@@ -283,9 +283,7 @@ function ActividadesBaseTable({ currentUserId, currentUserName, currentRol }: { 
                   <span className="font-normal opacity-70">(h/sesión)</span>
                 </th>
               ))}
-              <th className="px-3 py-2 text-center text-xs font-medium w-24" style={{ color: 'var(--color-text-soft)' }}>
-                Jornadas
-              </th>
+              <th className="px-3 py-2 text-center text-xs font-medium w-24" style={{ color: 'var(--color-text-soft)' }}>Jornadas</th>
             </tr>
           </thead>
           <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
@@ -325,12 +323,16 @@ function ActividadesBaseTable({ currentUserId, currentUserName, currentRol }: { 
                     )
                   })}
                   <td className="px-3 py-2.5 text-center">
-                    {jornadas !== null ? (
-                      <span className="text-sm font-semibold" style={{ color: 'var(--color-petroleum)' }}>
-                        {jornadas}
-                      </span>
+                    {jornadas !== null && jornadas > 0 ? (
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-petroleum)' }}>{jornadas}</span>
                     ) : (
-                      <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: 'rgba(245,158,11,0.12)', color: '#d97706' }}
+                        title="Sin jornadas — no se puede planificar"
+                      >
+                        Sin jornadas
+                      </span>
                     )}
                   </td>
                 </tr>
@@ -414,9 +416,20 @@ function ActividadPanel({
           style={{ backgroundColor: locked ? 'rgba(0,66,84,0.55)' : 'var(--color-petroleum)' }}
         >
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">
-              {actIdx + 1}. {actividad.nombre}
-            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-semibold text-white truncate">
+                {actIdx + 1}. {actividad.nombre}
+              </p>
+              {actividad.componentes.length === 0 && (
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
+                  style={{ backgroundColor: 'rgba(245,158,11,0.25)', color: '#fbbf24' }}
+                  title="Sin componentes — las jornadas serán 0"
+                >
+                  ⚠ Sin jornadas
+                </span>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2 mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
               {actividad.bloque && <span>{actividad.bloque}</span>}
               {actividad.componentes.length > 0 && (
@@ -564,6 +577,7 @@ function ActividadPanel({
             )}
           </div>
         )}
+
       </div>
     </>
   )

@@ -74,7 +74,8 @@ interface WizardState {
 
   // Reset
   reset: () => void
-  loadFromProyecto: (datos: DatosGenerales, actividades: IActividad[]) => void
+  loadFromProyecto:    (datos: DatosGenerales, actividades: IActividad[]) => void
+  reloadActividades:   (actividades: IActividad[]) => void   // recarga solo actividades sin tocar datosGenerales
 }
 
 export const useWizardStore = create<WizardState>((set) => ({
@@ -155,6 +156,14 @@ export const useWizardStore = create<WizardState>((set) => ({
     set({
       step: 1,
       datosGenerales: datos,
+      actividades: actividades.map(a => ({
+        ...a,
+        isDefault: DEFAULT_ACTIVITY_NAMES.has(a.nombre),
+      })),
+    }),
+
+  reloadActividades: (actividades) =>
+    set({
       actividades: actividades.map(a => ({
         ...a,
         isDefault: DEFAULT_ACTIVITY_NAMES.has(a.nombre),

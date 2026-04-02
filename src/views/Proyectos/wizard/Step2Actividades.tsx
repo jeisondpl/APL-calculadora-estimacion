@@ -9,7 +9,7 @@ import { DragDropProvider } from '@dnd-kit/react'
 import { useSortable } from '@dnd-kit/react/sortable'
 import { move } from '@dnd-kit/helpers'
 import { Button, Input, Card } from '@/shared/components/ui'
-import { useWizardStore } from '@/modules/proyectos'
+import { useWizardStore, useProyectosController } from '@/modules/proyectos'
 import type { IActividad } from '@/modules/proyectos'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -229,27 +229,36 @@ function DependenciaSelectorModal({
 
 // ─── Chips de dependencias ────────────────────────────────────────────────────
 
-function DependenciasChips({ dependencias, onOpen }: { dependencias?: string[]; onOpen: () => void }) {
+function DependenciasChips({ dependencias, allActividades, readOnly, onOpen }: { dependencias?: string[]; allActividades: IActividad[]; readOnly?: boolean; onOpen: () => void }) {
+  const rowNum = (nombre: string) => {
+    const idx = allActividades.findIndex(a => a.nombre === nombre)
+    return idx >= 0 ? idx + 1 : null
+  }
   return (
     <div className="flex flex-wrap items-center gap-1 mt-1">
-      {(dependencias ?? []).map(dep => (
-        <span
-          key={dep}
-          className="text-xs px-2 py-0.5 rounded-full font-medium truncate max-w-[180px]"
-          style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}
-          title={dep}
+      {(dependencias ?? []).map(dep => {
+        const num = rowNum(dep)
+        return (
+          <span
+            key={dep}
+            className="text-xs px-2 py-0.5 rounded-full font-medium truncate max-w-[200px]"
+            style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}
+            title={dep}
+          >
+            {num != null ? `${num}. ` : ''}{dep}
+          </span>
+        )
+      })}
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="text-xs px-2.5 py-1 rounded-md border font-medium transition-colors hover:bg-[rgba(0,66,84,0.06)]"
+          style={{ borderColor: 'var(--color-petroleum)', color: 'var(--color-petroleum)' }}
         >
-          {dep}
-        </span>
-      ))}
-      <button
-        type="button"
-        onClick={onOpen}
-        className="text-xs px-2.5 py-1 rounded-md border font-medium transition-colors hover:bg-[rgba(0,66,84,0.06)]"
-        style={{ borderColor: 'var(--color-petroleum)', color: 'var(--color-petroleum)' }}
-      >
-        {(dependencias ?? []).length === 0 ? '+ Agregar dependencia' : '✎ Editar dependencias'}
-      </button>
+          {(dependencias ?? []).length === 0 ? '+ Agregar dependencia' : '✎ Editar dependencias'}
+        </button>
+      )}
     </div>
   )
 }
@@ -267,6 +276,7 @@ function SortableRow({
   onEdit,
   onRemove,
   onOpenDeps,
+  allActividades,
   editForm,
 }: {
   act:            IActividad
@@ -279,6 +289,7 @@ function SortableRow({
   onEdit:         () => void
   onRemove:       () => void
   onOpenDeps:     () => void
+  allActividades: IActividad[]
   editForm:       React.ReactNode
 }) {
   // setElement: ref de estado — requerido por la nueva API
@@ -338,7 +349,7 @@ function SortableRow({
           {act.bloque && (
             <span className="text-xs md:hidden" style={{ color: 'var(--color-text-soft)' }}>{act.bloque}</span>
           )}
-          <DependenciasChips dependencias={act.dependencias} onOpen={onOpenDeps} />
+          <DependenciasChips dependencias={act.dependencias} allActividades={allActividades} readOnly={!canManage} onOpen={onOpenDeps} />
         </td>
 
         {/* Bloque */}
@@ -392,10 +403,49 @@ function SortableRow({
 // ─── Step 2 ───────────────────────────────────────────────────────────────────
 
 export function Step2Actividades() {
-  const { actividades, addActividad, updateActividad, removeActividad, reorderByArray, setDependencias, goToStep } = useWizardStore()
-  const [adding,      setAdding]      = useState(false)
-  const [editingIdx,  setEditingIdx]  = useState<number | null>(null)
+  const { actividades, addActividad, updateActividad, removeActividad, reorderByArray, setDependencias, reloadActividades, goToStep, editingId } = useWizardStore()
+  const { _getById } = useProyectosController()
+  const [adding,       setAdding]       = useState(false)
+  const [editingIdx,   setEditingIdx]   = useState<number | null>(null)
   const [depsModalIdx, setDepsModalIdx] = useState<number | null>(null)
+  const [removeBlock,  setRemoveBlock]  = useState<{ nombre: string; usadaEn: string } | null>(null)
+  const [reloading,    setReloading]    = useState(false)
+
+  const handleReload = async () => {
+    if (!editingId) return
+    setReloading(true)
+    const p = await _getById(editingId)
+    if (p) {
+      reloadActividades(
+        p.actividades.map(a => ({
+          nombre:           a.nombre,
+          proceso:          a.proceso          ?? undefined,
+          bloque:           a.bloque           ?? undefined,
+          jornadas:         a.jornadas         ?? undefined,
+          fechaInicio:      a.fechaInicio      ? a.fechaInicio.slice(0, 10) : undefined,
+          fechaFin:         a.fechaFin         ? a.fechaFin.slice(0, 10)    : undefined,
+          orden:            a.orden,
+          creadoPorId:      a.creadoPorId      ?? null,
+          creadoPorNombre:  a.creadoPorNombre  ?? null,
+          tiemposEstimador: (a as unknown as { tiemposEstimador?: { userId: number; nombre: string; horas: number }[] }).tiemposEstimador ?? [],
+          dependencias:     (a as unknown as { dependencias?: string[] }).dependencias ?? [],
+          componentes:      a.componentes.map(c => ({
+            componenteId:     c.componenteId,
+            nombreComponente: c.nombreComponente,
+            grupoNombre:      c.grupoNombre,
+            lenguajeNombre:   c.lenguajeNombre,
+            tecnologiaNombre: c.tecnologiaNombre,
+            cantidad:         c.cantidad,
+            reutilizar:       c.reutilizar,
+            tiempoBaseMin:    c.tiempoBaseMin,
+            tiempoCopilotMin: c.tiempoCopilotMin,
+            tiempoTmeMin:     c.tiempoTmeMin,
+          })),
+        }))
+      )
+    }
+    setReloading(false)
+  }
 
   const { data: session } = useSession()
   const currentUserId   = (session?.user as unknown as { userId?: number })?.userId ?? null
@@ -423,6 +473,16 @@ export function Step2Actividades() {
   const handleUpdate = (globalIdx: number, data: ActFormData) => {
     updateActividad(globalIdx, { ...actividades[globalIdx], nombre: data.nombre, bloque: data.bloque || undefined })
     setEditingIdx(null)
+  }
+
+  const handleRemove = (globalIdx: number) => {
+    const nombre  = actividades[globalIdx].nombre
+    const usadaEn = actividades.find(a => a.dependencias?.includes(nombre))
+    if (usadaEn) {
+      setRemoveBlock({ nombre, usadaEn: usadaEn.nombre })
+      return
+    }
+    removeActividad(globalIdx)
   }
 
   return (
@@ -491,8 +551,9 @@ export function Step2Actividades() {
                       isDragDisabled={editingIdx !== null || adding}
                       currentUserId={currentUserId}
                       onEdit={() => { setEditingIdx(globalIdx); setAdding(false) }}
-                      onRemove={() => removeActividad(globalIdx)}
+                      onRemove={() => handleRemove(globalIdx)}
                       onOpenDeps={() => { setDepsModalIdx(globalIdx); setEditingIdx(null) }}
+                      allActividades={actividades}
                       editForm={
                         <ActividadForm
                           initial={act}
@@ -527,10 +588,60 @@ export function Step2Actividades() {
 
       <div className="flex justify-between pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
         <Button variant="secondary" onClick={() => goToStep(1)}>← Anterior</Button>
-        <Button variant="primary" disabled={actividades.length === 0} onClick={() => goToStep(3)}>
-          Siguiente: Construcción →
-        </Button>
+        <div className="flex items-center gap-2">
+          {editingId && (
+            <button
+              type="button"
+              onClick={handleReload}
+              disabled={reloading}
+              title="Recargar actividades del servidor"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:bg-[rgba(0,66,84,0.06)] disabled:opacity-40"
+              style={{ borderColor: 'var(--color-border)', color: 'var(--color-petroleum)' }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-4 h-4 ${reloading ? 'animate-spin' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1 0 4.582 9H4" />
+              </svg>
+              {reloading ? 'Recargando…' : 'Recargar actividades'}
+            </button>
+          )}
+          <Button variant="primary" disabled={actividades.length === 0} onClick={() => goToStep(3)}>
+            Siguiente: Construcción →
+          </Button>
+        </div>
       </div>
+
+      {removeBlock !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+        >
+          <div
+            className="rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-4"
+            style={{ backgroundColor: 'var(--color-surface)' }}
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-xl mt-0.5">⚠️</span>
+              <div>
+                <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>
+                  No se puede eliminar la actividad
+                </p>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-soft)' }}>
+                  <strong style={{ color: 'var(--color-text)' }}>&quot;{removeBlock.nombre}&quot;</strong> es una dependencia de{' '}
+                  <strong style={{ color: 'var(--color-text)' }}>&quot;{removeBlock.usadaEn}&quot;</strong>.
+                  Elimina primero esa dependencia y luego intenta de nuevo.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="primary" size="sm" onClick={() => setRemoveBlock(null)}>Entendido</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {depsModalIdx !== null && (
         <DependenciaSelectorModal

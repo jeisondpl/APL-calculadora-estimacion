@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { successResponse, errorResponse } from '@/shared/lib/HttpResponse'
-import { requireRole } from '@/shared/lib/requireRole'
+import { requireRole, getSessionUser } from '@/shared/lib/requireRole'
 import type { IArgsUpdateProyecto, IActividad } from '@/modules/proyectos'
 
 type RouteCtx = { params: Promise<{ id: string }> }
@@ -133,7 +133,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
   }
 }
 
-// ─── PUT /api/proyectos/[id] ──────────────────────────────────────────────────
+// ─── PUT /api/proyectos/[id] — guardado por propietario (sin pisar a otros) ───
 export async function PUT(req: NextRequest, { params }: RouteCtx) {
   try {
     const { id } = await params
@@ -144,23 +144,37 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
     if (!body.requerimiento?.trim())  return NextResponse.json(errorResponse('Requerimiento requerido', 400), { status: 400 })
     if (!body.nombreProyecto?.trim()) return NextResponse.json(errorResponse('Nombre requerido', 400), { status: 400 })
 
-    const { actividadesData, proyTotalBase, proyTotalCopilot, proyTotalTme } =
-      await buildItemsAndTotals(body.actividades ?? [])
+    const sessionUser   = await getSessionUser()
+    const currentUserId = sessionUser?.userId ?? null
 
     const estimadorIds = body.estimadorIds ?? []
-
-    // Fetch estimador names to build estimadoPor display string
     let estimadoPorStr: string | null = body.estimadoPor ?? null
     if (estimadorIds.length > 0) {
-      const usuarios = await prisma.usuario.findMany({
-        where: { id: { in: estimadorIds } },
-        select: { nombre: true },
-      })
+      const usuarios = await prisma.usuario.findMany({ where: { id: { in: estimadorIds } }, select: { nombre: true } })
       estimadoPorStr = usuarios.map(u => u.nombre).join(', ') || null
     }
 
+    // 1. Leer actividades actuales de DB (con creado_por_id y datos_extra)
+    const existingActs = await prisma.$queryRaw<{
+      id: number; nombre: string; creado_por_id: number | null; datos_extra: unknown
+    }[]>(
+      Prisma.sql`SELECT id, nombre, creado_por_id, datos_extra FROM actividades WHERE proyecto_id = ${numId}`
+    )
+
+    // 2. Separar payload: actividades del usuario actual (no default) vs defaults
+    const myCustom   = (body.actividades ?? []).filter(a => !a.isDefault && a.creadoPorId === currentUserId)
+    const payDefaults = (body.actividades ?? []).filter(a => a.isDefault)
+
+    // 3. IDs de actividades propias a eliminar
+    const deleteIds = existingActs
+      .filter(a => currentUserId && a.creado_por_id === currentUserId)
+      .map(a => a.id)
+
+    // 4. Calcular datos de nuevas actividades propias
+    const { actividadesData } = await buildItemsAndTotals(myCustom)
+
+    // 5. Actualizar metadata del proyecto + estimadores
     await prisma.$transaction([
-      prisma.actividad.deleteMany({ where: { proyectoId: numId } }),
       prisma.proyectoEstimador.deleteMany({ where: { proyectoId: numId } }),
       prisma.proyecto.update({
         where: { id: numId },
@@ -172,42 +186,73 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
           fechaEjecucion:  toDate(body.fechaEjecucion),
           estimadoPor:     estimadoPorStr,
           supervisadoPor:  body.supervisadoPor ?? null,
-          totalBaseMin:    proyTotalBase,
-          totalCopilotMin: proyTotalCopilot,
-          totalTmeMin:     proyTotalTme,
-          actividades: { create: actividadesData },
           ...(estimadorIds.length > 0 && {
-            estimadores: {
-              create: estimadorIds.map(uid => ({ usuarioId: uid })),
-            },
+            estimadores: { create: estimadorIds.map(uid => ({ usuarioId: uid })) },
           }),
         },
       }),
     ])
 
-    // Set creado_por_id, datos_extra on newly created activities (Prisma client doesn't know these fields)
-    for (let i = 0; i < (body.actividades ?? []).length; i++) {
-      const act       = body.actividades![i]
-      const orden     = actividadesData[i].orden
-      const creadoPorId = act.creadoPorId ?? null
-      const extraObj: Record<string, unknown> = {}
-      if (act.tiemposEstimador?.length) extraObj.tiemposEstimador = act.tiemposEstimador
-      if (act.dependencias?.length)     extraObj.dependencias     = act.dependencias
-      const datosExtra = Object.keys(extraObj).length ? JSON.stringify(extraObj) : null
-      if (creadoPorId || datosExtra) {
-        await prisma.$executeRaw`
-          UPDATE actividades
-          SET    creado_por_id = ${creadoPorId},
-                 datos_extra   = ${datosExtra}::jsonb
-          WHERE  proyecto_id   = ${numId}
-          AND    orden          = ${orden}`
-      }
+    // 6. Eliminar solo las actividades del usuario actual
+    if (deleteIds.length > 0) {
+      await prisma.actividad.deleteMany({ where: { id: { in: deleteIds } } })
     }
-    // Save no_prefas / tiempo_sesion_horas
-    const noPrefas         = body.noPrefas         ?? 0
+
+    // 7. Crear nuevas actividades del usuario actual (con sus componentes)
+    for (let i = 0; i < myCustom.length; i++) {
+      const act     = myCustom[i]
+      const actData = actividadesData[i]
+      const created = await prisma.actividad.create({ data: { ...actData, proyectoId: numId } })
+      const extraObj: Record<string, unknown> = {}
+      if (act.dependencias?.length) extraObj.dependencias = act.dependencias
+      const datosExtra = Object.keys(extraObj).length ? JSON.stringify(extraObj) : null
+      await prisma.$executeRaw`
+        UPDATE actividades SET creado_por_id = ${currentUserId}, datos_extra = ${datosExtra}::jsonb
+        WHERE id = ${created.id}`
+    }
+
+    // 8. Actividades base: merge tiemposEstimador (solo actualizar entry del usuario actual)
+    for (const act of payDefaults) {
+      const dbAct = existingActs.find(a => a.nombre === act.nombre)
+      if (!dbAct) continue
+      const prevExtra   = dbAct.datos_extra as DatosExtraShape | null
+      const prevTiempos = prevExtra?.tiemposEstimador ?? []
+      const myEntry     = act.tiemposEstimador?.find(t => t.userId === currentUserId)
+      const merged      = [
+        ...prevTiempos.filter(t => t.userId !== currentUserId),
+        ...(myEntry ? [myEntry] : []),
+      ]
+      const mergedExtra: DatosExtraShape = {
+        tiemposEstimador: merged,
+        dependencias:     prevExtra?.dependencias ?? [],
+      }
+      const jornadasVal = act.jornadas ?? null
+      await prisma.$executeRaw`
+        UPDATE actividades
+        SET    datos_extra = ${JSON.stringify(mergedExtra)}::jsonb,
+               jornadas    = ${jornadasVal}
+        WHERE  id = ${dbAct.id}`
+    }
+
+    // 9. Guardar no_prefas / tiempo_sesion_horas
+    const noPrefas          = body.noPrefas          ?? 0
     const tiempoSesionHoras = body.tiempoSesionHoras ?? 0
     await prisma.$executeRaw`UPDATE proyectos SET no_prefas = ${noPrefas}, tiempo_sesion_horas = ${tiempoSesionHoras} WHERE id = ${numId}`
 
+    // 10. Recalcular totales desde TODAS las actividades del proyecto
+    const totalsRaw = await prisma.$queryRaw<{ base: unknown; copilot: unknown; tme: unknown }[]>(
+      Prisma.sql`SELECT COALESCE(SUM(total_base_min),0) AS base, COALESCE(SUM(total_copilot_min),0) AS copilot, COALESCE(SUM(total_tme_min),0) AS tme FROM actividades WHERE proyecto_id = ${numId}`
+    )
+    await prisma.proyecto.update({
+      where: { id: numId },
+      data: {
+        totalBaseMin:    Number(totalsRaw[0]?.base    ?? 0),
+        totalCopilotMin: Number(totalsRaw[0]?.copilot ?? 0),
+        totalTmeMin:     Number(totalsRaw[0]?.tme     ?? 0),
+      },
+    })
+
+    // 11. Devolver proyecto actualizado
     const full = await fetchProyecto(numId)
     const actIds = full.actividades.map(a => a.id)
     const creadoPorRows = actIds.length > 0

@@ -24,9 +24,9 @@ const schema = z.object({
   requerimiento:   z.string().min(1, 'Requerido'),
   nombreProyecto:  z.string().min(1, 'Requerido'),
   objetivo:        z.string().optional().default(''),
-  fechaEstimacion: z.string().optional().default(''),
-  fechaEjecucion:  z.string().optional().default(''),
-  supervisadoPor:  z.string().optional().default(''),
+  fechaEstimacion: z.string().min(1, 'Requerido'),
+  fechaEjecucion:  z.string().min(1, 'Requerido'),
+  supervisadoPor:  z.string().min(1, 'Requerido'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -46,8 +46,10 @@ export function Step1DatosGenerales() {
   // Selected estimadores (managed outside RHF because it's an array)
   const [estimadorIds,   setEstimadorIds]   = useState<number[]>(datosGenerales.estimadorIds ?? [])
 
-  // Modal state
-  const [modalOpen,      setModalOpen]      = useState(false)
+  // Modal estado
+  const [modalOpen,        setModalOpen]        = useState(false)
+  const [dateError,        setDateError]        = useState(false)
+  const [estimadoresError, setEstimadoresError] = useState(false)
   const [modalSelected,  setModalSelected]  = useState<Set<number>>(new Set())
   const [modalQuery,     setModalQuery]     = useState('')
 
@@ -57,7 +59,7 @@ export function Step1DatosGenerales() {
     return estimadorPool.filter(u => u.nombre.toLowerCase().includes(q))
   }, [estimadorPool, modalQuery])
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       requerimiento:   datosGenerales.requerimiento,
@@ -69,6 +71,15 @@ export function Step1DatosGenerales() {
     },
   })
 
+  const fechaEstimacion = watch('fechaEstimacion')
+  const fechaEjecucion  = watch('fechaEjecucion')
+
+  useEffect(() => {
+    if (fechaEstimacion && fechaEjecucion && fechaEjecucion < fechaEstimacion) {
+      setDateError(true)
+    }
+  }, [fechaEstimacion, fechaEjecucion])
+
   // Fetch lists on mount
   useEffect(() => {
     axios.get<UsuarioOption[]>('/api/usuarios/por-rol?roles=PRODUCT_OWNER')
@@ -76,7 +87,9 @@ export function Step1DatosGenerales() {
       .catch(() => {})
 
     axios.get<UsuarioOption[]>('/api/usuarios/por-rol?roles=DESARROLLADOR,QA')
-      .then(r => setEstimadorPool(r.data))
+      .then(r => setEstimadorPool(
+        [...r.data].sort((a, b) => a.rol.nombre.localeCompare(b.rol.nombre) || a.nombre.localeCompare(b.nombre))
+      ))
       .catch(() => {})
   }, [])
 
@@ -97,6 +110,7 @@ export function Step1DatosGenerales() {
 
   const confirmModal = () => {
     setEstimadorIds(Array.from(modalSelected))
+    if (modalSelected.size > 0) setEstimadoresError(false)
     setModalOpen(false)
   }
 
@@ -108,6 +122,7 @@ export function Step1DatosGenerales() {
     estimadorPool.find(u => u.id === id)?.nombre ?? String(id)
 
   const onSubmit = (data: FormData) => {
+    if (estimadorIds.length === 0) { setEstimadoresError(true); return }
     // Preserve fields not managed by RHF (noPrefas, tiempoSesionHoras)
     setDatosGenerales({ ...datosGenerales, ...data, estimadorIds } as DatosGenerales)
     goToStep(2)
@@ -153,31 +168,33 @@ export function Step1DatosGenerales() {
           </div>
 
           <Input
-            label="Fecha estimación"
+            label="Fecha estimación *"
             type="date"
             readOnly={readOnly}
             style={readOnly ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            error={errors.fechaEstimacion?.message}
             {...register('fechaEstimacion')}
           />
           <Input
-            label="Fecha ejecución"
+            label="Fecha ejecución *"
             type="date"
             readOnly={readOnly}
             style={readOnly ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            error={errors.fechaEjecucion?.message}
             {...register('fechaEjecucion')}
           />
 
           {/* Supervisado por */}
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>
-              Supervisado por
+              Supervisado por *
             </label>
             <select
               {...register('supervisadoPor')}
               disabled={readOnly}
               className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
               style={{
-                borderColor:     'var(--color-border)',
+                borderColor:     errors.supervisadoPor ? '#C0392B' : 'var(--color-border)',
                 color:           'var(--color-text)',
                 backgroundColor: 'var(--color-surface)',
                 opacity:         readOnly ? 0.6 : 1,
@@ -189,12 +206,15 @@ export function Step1DatosGenerales() {
                 <option key={s.id} value={s.nombre}>{s.nombre}</option>
               ))}
             </select>
+            {errors.supervisadoPor && (
+              <p className="text-xs" style={{ color: '#C0392B' }}>{errors.supervisadoPor.message}</p>
+            )}
           </div>
 
           {/* Estimadores */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>
-              Estimadores
+              Estimadores *
             </label>
 
             {/* Chips */}
@@ -232,6 +252,9 @@ export function Step1DatosGenerales() {
                 + Agregar estimadores
               </button>
             )}
+            {estimadoresError && estimadorIds.length === 0 && (
+              <p className="text-xs" style={{ color: '#C0392B' }}>Por lo menos debe seleccionar un estimador</p>
+            )}
           </div>
 
         </div>
@@ -242,6 +265,41 @@ export function Step1DatosGenerales() {
           </Button>
         </div>
       </form>
+
+      {/* Modal error de fechas */}
+      {dateError && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+        >
+          <div
+            className="rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-4"
+            style={{ backgroundColor: 'var(--color-surface)' }}
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-xl mt-0.5">⚠️</span>
+              <div>
+                <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>
+                  Fechas inválidas
+                </p>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-soft)' }}>
+                  La <strong style={{ color: 'var(--color-text)' }}>fecha de ejecución</strong> no puede ser anterior a la <strong style={{ color: 'var(--color-text)' }}>fecha de estimación</strong>.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setDateError(false)}
+                className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: 'var(--color-petroleum)' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de selección de estimadores */}
       {modalOpen && (

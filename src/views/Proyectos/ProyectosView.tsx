@@ -17,6 +17,7 @@ export function ProyectosView() {
   const [page,          setPage]          = useState(1)
   const [search,        setSearch]        = useState('')
   const [filterEstado,  setFilterEstado]  = useState<'todos' | 'ABIERTO' | 'CERRADO'>('todos')
+  const [refreshing,    setRefreshing]    = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<IResponseProyectoSummary | null>(null)
   const [deleting,     setDeleting]     = useState(false)
   const [togglingId,   setTogglingId]   = useState<number | null>(null)
@@ -56,11 +57,29 @@ export function ProyectosView() {
         title="Proyectos de estimación"
         subtitle={`${paginado?.total ?? 0} proyectos guardados`}
         action={
-          canEdit ? (
-            <Link href="/proyectos/nuevo">
-              <Button variant="primary">+ Nuevo proyecto</Button>
-            </Link>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => { setRefreshing(true); await _list(page, LIMIT); setRefreshing(false) }}
+              disabled={refreshing}
+              title="Recargar lista"
+              className="p-2 rounded-lg border transition-colors hover:bg-[rgba(0,66,84,0.06)] disabled:opacity-40"
+              style={{ borderColor: 'var(--color-border)', color: 'var(--color-petroleum)' }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1 0 4.582 9H4" />
+              </svg>
+            </button>
+            {canEdit && (
+              <Link href="/proyectos/nuevo">
+                <Button variant="primary">+ Nuevo proyecto</Button>
+              </Link>
+            )}
+          </div>
         }
       />
 
