@@ -28,6 +28,7 @@ export interface IActividad {
   creadoPorId?:      number | null
   creadoPorNombre?:  string | null
   tiemposEstimador?: { userId: number; nombre: string; horas: number }[]
+  dependencias?:     string[]   // nombres de actividades previas requeridas
   componentes: IActividadComponente[]
   // totales calculados
   totalBaseMin?:    number
@@ -99,6 +100,7 @@ export interface IResponseActividad {
   creadoPorId:      number | null
   creadoPorNombre:  string | null
   tiemposEstimador: { userId: number; nombre: string; horas: number }[]
+  dependencias:    string[]
   totalBaseMin:    number
   totalCopilotMin: number
   totalTmeMin:     number

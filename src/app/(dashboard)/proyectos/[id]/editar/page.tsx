@@ -48,6 +48,7 @@ export default function EditarProyectoPage({
           creadoPorId:      a.creadoPorId       ?? null,
           creadoPorNombre:  a.creadoPorNombre   ?? null,
           tiemposEstimador: (a as unknown as { tiemposEstimador?: { userId: number; nombre: string; horas: number }[] }).tiemposEstimador ?? [],
+          dependencias:     (a as unknown as { dependencias?: string[] }).dependencias ?? [],
           componentes: a.componentes.map(c => ({
             componenteId:     c.componenteId,
             nombreComponente: c.nombreComponente,

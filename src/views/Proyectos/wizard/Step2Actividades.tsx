@@ -98,6 +98,162 @@ function CreadoPorBadge({ act, currentUserId }: { act: IActividad; currentUserId
   )
 }
 
+// ─── Modal selector de dependencias ──────────────────────────────────────────
+
+function DependenciaSelectorModal({
+  actividadNombre,
+  allActividades,
+  selected,
+  onClose,
+  onConfirm,
+}: {
+  actividadNombre: string
+  allActividades:  IActividad[]
+  selected:        string[]
+  onClose:         () => void
+  onConfirm:       (deps: string[]) => void
+}) {
+  const [search,  setSearch]  = useState('')
+  const [checked, setChecked] = useState<Set<string>>(new Set(selected))
+
+  const available = allActividades.filter(a => a.nombre !== actividadNombre)
+  const filtered  = available.filter(a =>
+    a.nombre.toLowerCase().includes(search.toLowerCase()) ||
+    (a.bloque ?? '').toLowerCase().includes(search.toLowerCase())
+  )
+
+  const toggle = (nombre: string) =>
+    setChecked(prev => { const n = new Set(prev); n.has(nombre) ? n.delete(nombre) : n.add(nombre); return n })
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="flex flex-col w-full max-w-2xl mx-4 rounded-xl shadow-2xl overflow-hidden"
+        style={{ maxHeight: '80vh', backgroundColor: 'var(--color-surface)' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
+          <div>
+            <h2 className="font-semibold text-base" style={{ color: 'var(--color-petroleum)' }}>
+              Seleccionar dependencias
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-soft)' }}>
+              {available.length} disponibles · {checked.size} seleccionada{checked.size !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg px-2 py-1 text-lg hover:bg-[rgba(0,0,0,0.06)] transition-colors"
+            style={{ color: 'var(--color-text-soft)' }}
+          >✕</button>
+        </div>
+
+        {/* Buscador */}
+        <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Buscar por nombre o bloque..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+            style={{
+              borderColor:     'var(--color-border)',
+              color:           'var(--color-text)',
+              backgroundColor: 'var(--color-surface)',
+            }}
+          />
+        </div>
+
+        {/* Tabla */}
+        <div className="overflow-y-auto flex-1">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0">
+              <tr style={{ backgroundColor: 'var(--color-petroleum)', color: '#fff' }}>
+                <th className="px-4 py-2 w-10" />
+                <th className="px-4 py-2 text-left font-medium">Actividad</th>
+                <th className="px-4 py-2 text-left font-medium w-44">Bloque</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-8 text-center text-sm" style={{ color: 'var(--color-text-soft)' }}>
+                    Sin resultados
+                  </td>
+                </tr>
+              ) : filtered.map(a => (
+                <tr
+                  key={a.nombre}
+                  className="hover:bg-[rgba(0,66,84,0.03)] cursor-pointer transition-colors"
+                  onClick={() => toggle(a.nombre)}
+                >
+                  <td className="px-4 py-2.5 text-center">
+                    <input
+                      type="checkbox"
+                      readOnly
+                      checked={checked.has(a.nombre)}
+                      className="w-4 h-4 cursor-pointer"
+                      style={{ accentColor: 'var(--color-petroleum)' }}
+                    />
+                  </td>
+                  <td className="px-4 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{a.nombre}</td>
+                  <td className="px-4 py-2.5 text-xs"     style={{ color: 'var(--color-text-soft)' }}>{a.bloque || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer */}
+        <div
+          className="flex items-center justify-between px-5 py-3 border-t"
+          style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
+        >
+          <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
+            {checked.size === 0 ? 'Ninguna seleccionada' : `${checked.size} seleccionada${checked.size !== 1 ? 's' : ''}`}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={onClose}>Cancelar</Button>
+            <Button variant="primary"   size="sm" onClick={() => onConfirm(Array.from(checked))}>Aceptar</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Chips de dependencias ────────────────────────────────────────────────────
+
+function DependenciasChips({ dependencias, onOpen }: { dependencias?: string[]; onOpen: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1">
+      {(dependencias ?? []).map(dep => (
+        <span
+          key={dep}
+          className="text-xs px-2 py-0.5 rounded-full font-medium truncate max-w-[180px]"
+          style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}
+          title={dep}
+        >
+          {dep}
+        </span>
+      ))}
+      <button
+        type="button"
+        onClick={onOpen}
+        className="text-xs px-2.5 py-1 rounded-md border font-medium transition-colors hover:bg-[rgba(0,66,84,0.06)]"
+        style={{ borderColor: 'var(--color-petroleum)', color: 'var(--color-petroleum)' }}
+      >
+        {(dependencias ?? []).length === 0 ? '+ Agregar dependencia' : '✎ Editar dependencias'}
+      </button>
+    </div>
+  )
+}
+
 // ─── Fila sortable (nueva API @dnd-kit/react) ─────────────────────────────────
 
 function SortableRow({
@@ -110,6 +266,7 @@ function SortableRow({
   currentUserId,
   onEdit,
   onRemove,
+  onOpenDeps,
   editForm,
 }: {
   act:            IActividad
@@ -121,6 +278,7 @@ function SortableRow({
   currentUserId:  number | null
   onEdit:         () => void
   onRemove:       () => void
+  onOpenDeps:     () => void
   editForm:       React.ReactNode
 }) {
   // setElement: ref de estado — requerido por la nueva API
@@ -180,6 +338,7 @@ function SortableRow({
           {act.bloque && (
             <span className="text-xs md:hidden" style={{ color: 'var(--color-text-soft)' }}>{act.bloque}</span>
           )}
+          <DependenciasChips dependencias={act.dependencias} onOpen={onOpenDeps} />
         </td>
 
         {/* Bloque */}
@@ -233,9 +392,10 @@ function SortableRow({
 // ─── Step 2 ───────────────────────────────────────────────────────────────────
 
 export function Step2Actividades() {
-  const { actividades, addActividad, updateActividad, removeActividad, reorderByArray, goToStep } = useWizardStore()
-  const [adding,     setAdding]     = useState(false)
-  const [editingIdx, setEditingIdx] = useState<number | null>(null)
+  const { actividades, addActividad, updateActividad, removeActividad, reorderByArray, setDependencias, goToStep } = useWizardStore()
+  const [adding,      setAdding]      = useState(false)
+  const [editingIdx,  setEditingIdx]  = useState<number | null>(null)
+  const [depsModalIdx, setDepsModalIdx] = useState<number | null>(null)
 
   const { data: session } = useSession()
   const currentUserId   = (session?.user as unknown as { userId?: number })?.userId ?? null
@@ -299,7 +459,9 @@ export function Step2Actividades() {
                         <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{i + 1}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{act.nombre}</td>
+                    <td className="px-3 py-2.5">
+                      <p className="font-medium" style={{ color: 'var(--color-text)' }}>{act.nombre}</p>
+                    </td>
                     <td className="px-3 py-2.5 hidden md:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>{act.bloque || '—'}</td>
                     <td className="px-3 py-2.5 text-center text-xs hidden sm:table-cell" style={{ color: 'var(--color-text)' }}>{act.jornadas ?? '—'}</td>
                     <td className="px-3 py-2.5 hidden lg:table-cell">
@@ -330,6 +492,7 @@ export function Step2Actividades() {
                       currentUserId={currentUserId}
                       onEdit={() => { setEditingIdx(globalIdx); setAdding(false) }}
                       onRemove={() => removeActividad(globalIdx)}
+                      onOpenDeps={() => { setDepsModalIdx(globalIdx); setEditingIdx(null) }}
                       editForm={
                         <ActividadForm
                           initial={act}
@@ -368,6 +531,16 @@ export function Step2Actividades() {
           Siguiente: Construcción →
         </Button>
       </div>
+
+      {depsModalIdx !== null && (
+        <DependenciaSelectorModal
+          actividadNombre={actividades[depsModalIdx].nombre}
+          allActividades={actividades}
+          selected={actividades[depsModalIdx].dependencias ?? []}
+          onClose={() => setDepsModalIdx(null)}
+          onConfirm={deps => { setDependencias(depsModalIdx, deps); setDepsModalIdx(null) }}
+        />
+      )}
     </div>
   )
 }

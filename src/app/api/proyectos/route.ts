@@ -255,9 +255,10 @@ export async function POST(req: NextRequest) {
       const act       = body.actividades![i]
       const orden     = actividadesData[i].orden
       const creadoPorId = act.creadoPorId ?? null
-      const datosExtra  = act.tiemposEstimador?.length
-        ? JSON.stringify({ tiemposEstimador: act.tiemposEstimador })
-        : null
+      const extraObj: Record<string, unknown> = {}
+      if (act.tiemposEstimador?.length) extraObj.tiemposEstimador = act.tiemposEstimador
+      if (act.dependencias?.length)     extraObj.dependencias     = act.dependencias
+      const datosExtra = Object.keys(extraObj).length ? JSON.stringify(extraObj) : null
       if (creadoPorId || datosExtra) {
         await prisma.$executeRaw`
           UPDATE actividades

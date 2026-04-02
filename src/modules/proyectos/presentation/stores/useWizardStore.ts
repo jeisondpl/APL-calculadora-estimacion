@@ -66,6 +66,9 @@ interface WizardState {
   updateComponente: (actIdx: number, compId: number, c: Partial<IActividadComponente>) => void
   removeComponente: (actIdx: number, compId: number) => void
 
+  // Dependencias entre actividades
+  setDependencias: (actIdx: number, dependencias: string[]) => void
+
   // Tiempo estimador en actividades base
   setTiempoEstimador: (actIdx: number, userId: number, nombre: string, horas: number) => void
 
@@ -126,6 +129,11 @@ export const useWizardStore = create<WizardState>((set) => ({
       actividades: s.actividades.map((a, i) =>
         i === actIdx ? { ...a, componentes: a.componentes.filter(c => c.componenteId !== compId) } : a
       ),
+    })),
+
+  setDependencias: (actIdx, dependencias) =>
+    set(s => ({
+      actividades: s.actividades.map((a, i) => i === actIdx ? { ...a, dependencias } : a),
     })),
 
   setTiempoEstimador: (actIdx, userId, nombre, horas) =>

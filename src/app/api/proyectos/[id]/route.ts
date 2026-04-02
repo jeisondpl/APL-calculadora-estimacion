@@ -58,7 +58,8 @@ async function fetchProyecto(id: number) {
   })
 }
 
-type CreadoPorInfo = { id: number | null; nombre: string | null; tiemposEstimador?: { userId: number; nombre: string; horas: number }[] }
+type DatosExtraShape = { tiemposEstimador?: { userId: number; nombre: string; horas: number }[]; dependencias?: string[] }
+type CreadoPorInfo = { id: number | null; nombre: string | null; tiemposEstimador?: { userId: number; nombre: string; horas: number }[]; dependencias?: string[] }
 function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>, creadoPorMap?: Map<number, CreadoPorInfo>) {
   return {
     id: p.id, requerimiento: p.requerimiento, nombreProyecto: p.nombreProyecto, objetivo: p.objetivo,
@@ -76,6 +77,7 @@ function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>, creadoPorM
       creadoPorId:      creadoPorMap ? (creadoPorMap.get(a.id)?.id              ?? null) : null,
       creadoPorNombre:  creadoPorMap ? (creadoPorMap.get(a.id)?.nombre          ?? null) : null,
       tiemposEstimador: creadoPorMap ? (creadoPorMap.get(a.id)?.tiemposEstimador ?? [])  : [],
+      dependencias:     creadoPorMap ? (creadoPorMap.get(a.id)?.dependencias     ?? [])  : [],
       componentes: a.componentes.map(ac => ({
         id: ac.id, componenteId: ac.componenteId,
         nombreComponente: ac.componente.nombreComponente, grupoNombre: ac.componente.grupo.nombre,
@@ -106,14 +108,18 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
           )
         : Promise.resolve([] as { id: number; creado_por_id: number | null; creado_por_nombre: string | null; datos_extra: unknown }[]),
     ])
-    const creadoPorMap = new Map(creadoPorRows.map(r => [
-      Number(r.id),
-      {
-        id:              r.creado_por_id ? Number(r.creado_por_id) : null,
-        nombre:          r.creado_por_nombre ?? null,
-        tiemposEstimador: (r.datos_extra as { tiemposEstimador?: { userId: number; nombre: string; horas: number }[] } | null)?.tiemposEstimador ?? [],
-      }
-    ]))
+    const creadoPorMap = new Map(creadoPorRows.map(r => {
+      const extra = r.datos_extra as DatosExtraShape | null
+      return [
+        Number(r.id),
+        {
+          id:               r.creado_por_id ? Number(r.creado_por_id) : null,
+          nombre:           r.creado_por_nombre ?? null,
+          tiemposEstimador: extra?.tiemposEstimador ?? [],
+          dependencias:     extra?.dependencias     ?? [],
+        },
+      ]
+    }))
 
     return NextResponse.json(successResponse({
       ...formatProyecto(p, creadoPorMap),
@@ -184,9 +190,10 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
       const act       = body.actividades![i]
       const orden     = actividadesData[i].orden
       const creadoPorId = act.creadoPorId ?? null
-      const datosExtra  = act.tiemposEstimador?.length
-        ? JSON.stringify({ tiemposEstimador: act.tiemposEstimador })
-        : null
+      const extraObj: Record<string, unknown> = {}
+      if (act.tiemposEstimador?.length) extraObj.tiemposEstimador = act.tiemposEstimador
+      if (act.dependencias?.length)     extraObj.dependencias     = act.dependencias
+      const datosExtra = Object.keys(extraObj).length ? JSON.stringify(extraObj) : null
       if (creadoPorId || datosExtra) {
         await prisma.$executeRaw`
           UPDATE actividades
@@ -204,11 +211,19 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
     const full = await fetchProyecto(numId)
     const actIds = full.actividades.map(a => a.id)
     const creadoPorRows = actIds.length > 0
-      ? await prisma.$queryRaw<{ id: number; creado_por_id: number | null; creado_por_nombre: string | null }[]>(
-          Prisma.sql`SELECT a.id, a.creado_por_id, u.nombre AS creado_por_nombre FROM actividades a LEFT JOIN usuarios u ON u.id = a.creado_por_id WHERE a.id IN (${Prisma.join(actIds)})`
+      ? await prisma.$queryRaw<{ id: number; creado_por_id: number | null; creado_por_nombre: string | null; datos_extra: unknown }[]>(
+          Prisma.sql`SELECT a.id, a.creado_por_id, u.nombre AS creado_por_nombre, a.datos_extra FROM actividades a LEFT JOIN usuarios u ON u.id = a.creado_por_id WHERE a.id IN (${Prisma.join(actIds)})`
         )
       : []
-    const creadoPorMap = new Map(creadoPorRows.map(r => [Number(r.id), { id: r.creado_por_id ? Number(r.creado_por_id) : null, nombre: r.creado_por_nombre ?? null }]))
+    const creadoPorMap = new Map(creadoPorRows.map(r => {
+      const extra = r.datos_extra as DatosExtraShape | null
+      return [Number(r.id), {
+        id:               r.creado_por_id ? Number(r.creado_por_id) : null,
+        nombre:           r.creado_por_nombre ?? null,
+        tiemposEstimador: extra?.tiemposEstimador ?? [],
+        dependencias:     extra?.dependencias     ?? [],
+      }]
+    }))
     return NextResponse.json(successResponse(formatProyecto(full, creadoPorMap)))
   } catch (e) {
     return NextResponse.json(errorResponse(e instanceof Error ? e.message : 'Error', 500), { status: 500 })
