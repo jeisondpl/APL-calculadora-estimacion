@@ -28,12 +28,14 @@ export function PlanificarView({ id }: { id: number }) {
     if (!proyecto) return
     setFilas(
       proyecto.actividades.map(a => ({
-        id:          a.id,
-        nombre:      a.nombre,
-        bloque:      a.bloque,
-        jornadas:    a.jornadas,
-        fechaInicio: a.fechaInicio ? a.fechaInicio.slice(0, 10) : '',
-        fechaFin:    a.fechaFin    ? a.fechaFin.slice(0, 10)    : '',
+        id:               a.id,
+        nombre:           a.nombre,
+        bloque:           a.bloque,
+        jornadas:         a.jornadas,
+        fechaInicio:      a.fechaInicio ? a.fechaInicio.slice(0, 10) : '',
+        fechaFin:         a.fechaFin    ? a.fechaFin.slice(0, 10)    : '',
+        creadoPorNombre:  (a as unknown as { creadoPorNombre?: string | null }).creadoPorNombre ?? null,
+        isDefault:        (a as unknown as { isDefault?: boolean }).isDefault ?? false,
       }))
     )
   }, [proyecto])
@@ -94,7 +96,8 @@ export function PlanificarView({ id }: { id: number }) {
                 <th className="px-3 py-2.5 text-left font-medium w-8">#</th>
                 <th className="px-3 py-2.5 text-left font-medium">Actividad</th>
                 <th className="px-3 py-2.5 text-left font-medium w-36 hidden md:table-cell">Bloque</th>
-                <th className="px-3 py-2.5 text-center font-medium w-20 hidden sm:table-cell">Jornadas</th>
+                <th className="px-3 py-2.5 text-center font-medium w-24 hidden sm:table-cell">Jornadas</th>
+                <th className="px-3 py-2.5 text-left font-medium w-36 hidden lg:table-cell">Estimador</th>
                 <th className="px-3 py-2.5 text-left font-medium w-40">Fecha inicio</th>
                 <th className="px-3 py-2.5 text-left font-medium w-40">Fecha fin</th>
               </tr>
@@ -107,8 +110,35 @@ export function PlanificarView({ id }: { id: number }) {
                   <td className="px-3 py-2.5 hidden md:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>
                     {fila.bloque || '—'}
                   </td>
-                  <td className="px-3 py-2.5 text-center text-xs hidden sm:table-cell" style={{ color: 'var(--color-text)' }}>
-                    {fila.jornadas ?? '—'}
+                  <td className="px-3 py-2.5 text-center hidden sm:table-cell">
+                    {fila.jornadas && fila.jornadas > 0 ? (
+                      <span className="text-xs font-semibold" style={{ color: 'var(--color-petroleum)' }}>
+                        {fila.jornadas}
+                      </span>
+                    ) : (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: 'rgba(245,158,11,0.12)', color: '#d97706' }}
+                        title="Sin jornadas — no se puede planificar"
+                      >
+                        ⚠ Sin jornadas
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 hidden lg:table-cell">
+                    {fila.isDefault ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
+                        Sistema
+                      </span>
+                    ) : fila.creadoPorNombre ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}>
+                        {fila.creadoPorNombre}
+                      </span>
+                    ) : (
+                      <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2 pr-2">
                     <input

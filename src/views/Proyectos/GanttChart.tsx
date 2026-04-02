@@ -3,12 +3,14 @@
 import { useMemo } from 'react'
 
 export interface GanttFila {
-  id:          number
-  nombre:      string
-  bloque:      string | null
-  jornadas:    number | null
-  fechaInicio: string   // 'YYYY-MM-DD' o ''
-  fechaFin:    string   // 'YYYY-MM-DD' o ''
+  id:               number
+  nombre:           string
+  bloque:           string | null
+  jornadas:         number | null
+  fechaInicio:      string   // 'YYYY-MM-DD' o ''
+  fechaFin:         string   // 'YYYY-MM-DD' o ''
+  creadoPorNombre?: string | null
+  isDefault?:       boolean
 }
 
 function bloqueColor(bloque: string | null): string {
