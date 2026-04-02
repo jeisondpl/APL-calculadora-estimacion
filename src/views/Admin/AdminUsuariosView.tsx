@@ -166,7 +166,7 @@ export function AdminUsuariosView() {
   // ── stats ──────────────────────────────────────────────────────────────────
   const stats = useMemo(() => ({
     total:    usuarios.length,
-    activos:  usuarios.filter(u => u.activo).length,
+    po:       usuarios.filter(u => u.rol.nombre === 'PRODUCT_OWNER').length,
     devs:     usuarios.filter(u => u.rol.nombre === 'DESARROLLADOR').length,
     qa:       usuarios.filter(u => u.rol.nombre === 'QA').length,
   }), [usuarios])
@@ -280,10 +280,10 @@ export function AdminUsuariosView() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Total usuarios"  value={stats.total}   />
-        <StatCard label="Activos"         value={stats.activos}  color="#10b981" />
-        <StatCard label="Desarrolladores" value={stats.devs}     color="#004254" />
-        <StatCard label="QA"              value={stats.qa}       color="#10b981" />
+        <StatCard label="Total usuarios"  value={stats.total} />
+        <StatCard label="Product Owner"   value={stats.po}    color="#3b82f6" />
+        <StatCard label="Desarrolladores" value={stats.devs}  color="#004254" />
+        <StatCard label="QA"              value={stats.qa}    color="#10b981" />
       </div>
 
       {/* Filtros */}
@@ -298,6 +298,7 @@ export function AdminUsuariosView() {
             placeholder="Buscar por nombre o email…"
             value={search}
             onChange={e => setSearch(e.target.value)}
+            autoComplete="off"
             className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border outline-none"
             style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
           />
@@ -454,6 +455,7 @@ export function AdminUsuariosView() {
                 placeholder="Ej. Juan Pérez García"
                 value={form.nombre}
                 onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))}
+                autoComplete="off"
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border outline-none"
                 style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
               />
@@ -467,6 +469,7 @@ export function AdminUsuariosView() {
                 placeholder="usuario@indra.com"
                 value={form.email}
                 onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                autoComplete="off"
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border outline-none"
                 style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
               />
@@ -484,6 +487,7 @@ export function AdminUsuariosView() {
                   placeholder="••••••••"
                   value={form.password}
                   onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                  autoComplete="new-password"
                   className="w-full pl-3.5 pr-10 py-2.5 text-sm rounded-xl border outline-none"
                   style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                 />
