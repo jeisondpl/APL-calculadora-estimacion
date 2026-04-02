@@ -1,27 +1,13 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSession } from 'next-auth/react'
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  useSensor,
-  useSensors,
-  MouseSensor,
-  TouchSensor,
-  type DragEndEvent,
-  type DragStartEvent,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-// CSS from @dnd-kit/utilities not needed: tr elements don't support transform in table layout
+import { DragDropProvider } from '@dnd-kit/react'
+import { useSortable } from '@dnd-kit/react/sortable'
+import { move } from '@dnd-kit/helpers'
 import { Button, Input, Card } from '@/shared/components/ui'
 import { useWizardStore } from '@/modules/proyectos'
 import type { IActividad } from '@/modules/proyectos'
@@ -93,18 +79,13 @@ function ActividadForm({
   )
 }
 
-// ─── Celda "Creado por" ────────────────────────────────────────────────────────
+// ─── Badge creado por ─────────────────────────────────────────────────────────
 
 function CreadoPorBadge({ act, currentUserId }: { act: IActividad; currentUserId: number | null }) {
-  if (act.isDefault) {
-    return (
-      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-        style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
-        Sistema
-      </span>
-    )
-  }
-  if (!act.creadoPorNombre) return <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
+  if (act.isDefault)
+    return <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981' }}>Sistema</span>
+  if (!act.creadoPorNombre)
+    return <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
   const isMe = act.creadoPorId === currentUserId
   return (
     <span className="text-xs px-2 py-0.5 rounded-full font-medium"
@@ -117,14 +98,13 @@ function CreadoPorBadge({ act, currentUserId }: { act: IActividad; currentUserId
   )
 }
 
-// ─── Fila sortable ────────────────────────────────────────────────────────────
+// ─── Fila sortable (nueva API @dnd-kit/react) ─────────────────────────────────
 
 function SortableRow({
-  globalIdx,
   act,
+  index,
   rowNum,
   canManage,
-  canDrag,
   isEditing,
   isDragDisabled,
   currentUserId,
@@ -132,11 +112,10 @@ function SortableRow({
   onRemove,
   editForm,
 }: {
-  globalIdx:      number
   act:            IActividad
-  rowNum:         number
+  index:          number       // índice dentro del array de custom activities
+  rowNum:         number       // número de fila visual (1-based, incluyendo defaults)
   canManage:      boolean
-  canDrag:        boolean
   isEditing:      boolean
   isDragDisabled: boolean
   currentUserId:  number | null
@@ -144,41 +123,53 @@ function SortableRow({
   onRemove:       () => void
   editForm:       React.ReactNode
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useSortable({
-    id:       globalIdx,
-    disabled: isDragDisabled || !canDrag,
+  // setElement: ref de estado — requerido por la nueva API
+  const [element, setElement] = useState<Element | null>(null)
+  // handleRef: ref del botón de arrastre
+  const handleRef = useRef<HTMLButtonElement | null>(null)
+
+  const { isDragging } = useSortable({
+    id:       act.nombre,   // ID estable basado en el nombre
+    index,
+    element,
+    handle:   handleRef,
+    disabled: isDragDisabled,
   })
 
-  // CSS transform does NOT work on <tr> in table layout.
-  // Solution: hide the source row when dragging; DragOverlay handles the visual.
   return (
     <Fragment>
       <tr
-        ref={setNodeRef}
-        {...attributes}
+        ref={setElement as React.Ref<HTMLTableRowElement>}
         className="hover:bg-[rgba(0,66,84,0.03)] transition-colors"
-        style={{ opacity: isDragging ? 0 : 1, outline: 'none' }}
+        style={{
+          opacity:         isDragging ? 0.5 : 1,
+          backgroundColor: isDragging ? 'rgba(0,37,50,0.12)' : undefined,
+          transition:      'opacity 0.15s, background-color 0.15s',
+        }}
       >
-        {/* Handle / número */}
-        <td className="px-3 py-2.5 w-10">
+        {/* Handle + número */}
+        <td className="px-3 py-2.5 w-12">
           <div className="flex items-center gap-1.5">
-            {canDrag && !isDragDisabled ? (
-              <span
-                {...listeners}
-                className="select-none leading-none flex items-center justify-center w-5 h-5 rounded"
-                style={{
-                  color:       'var(--color-petroleum)',
-                  cursor:      'grab',
-                  opacity:     isDragging ? 0 : 0.7,
-                  touchAction: 'none',
-                  userSelect:  'none',
-                  fontSize:    '18px',
-                }}
-                title="Arrastrar para reordenar"
-              >⠿</span>
-            ) : (
-              <span className="inline-block w-5" />
-            )}
+            <button
+              ref={handleRef}
+              type="button"
+              disabled={isDragDisabled}
+              className="select-none rounded hover:bg-[rgba(0,66,84,0.1)] transition-colors flex items-center justify-center"
+              style={{
+                color:       'var(--color-petroleum)',
+                cursor:      isDragDisabled ? 'default' : 'grab',
+                opacity:     isDragDisabled ? 0.2 : 0.6,
+                touchAction: 'none',
+                fontSize:    '16px',
+                lineHeight:  1,
+                width:       '1.4rem',
+                height:      '1.4rem',
+                border:      'none',
+                background:  'none',
+                padding:     0,
+              }}
+              title="Arrastrar para reordenar"
+            >⠿</button>
             <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{rowNum}</span>
           </div>
         </td>
@@ -198,9 +189,7 @@ function SortableRow({
 
         {/* Jornadas */}
         <td className="px-3 py-2.5 text-center text-xs hidden sm:table-cell" style={{ color: 'var(--color-text)' }}>
-          {act.isDefault
-            ? (act.jornadas ?? '—')
-            : (act.componentes.length > 0 ? act.componentes.length : '—')}
+          {act.componentes.length > 0 ? act.componentes.length : '—'}
         </td>
 
         {/* Creado por */}
@@ -224,7 +213,7 @@ function SortableRow({
                   style={{ color: '#C0392B' }}
                 >✕</button>
               </>
-            ) : !act.isDefault && (
+            ) : (
               <span title="Creada por otro estimador" className="text-xs px-1.5 py-0.5"
                 style={{ color: 'var(--color-text-soft)', opacity: 0.5 }}>🔒</span>
             )}
@@ -241,88 +230,38 @@ function SortableRow({
   )
 }
 
-// ─── Vista previa en el overlay del drag ──────────────────────────────────────
-
-function DragPreviewRow({ act, rowNum }: { act: IActividad; rowNum: number }) {
-  return (
-    <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg shadow-xl text-sm"
-      style={{
-        backgroundColor: 'var(--color-surface)',
-        border:          '2px solid var(--color-petroleum)',
-        minWidth:        320,
-        cursor:          'grabbing',
-      }}
-    >
-      <span className="text-lg leading-none select-none" style={{ color: 'var(--color-petroleum)' }}>⠿</span>
-      <span className="text-xs w-5 shrink-0" style={{ color: 'var(--color-text-soft)' }}>{rowNum}</span>
-      <span className="font-medium truncate flex-1" style={{ color: 'var(--color-petroleum)' }}>{act.nombre}</span>
-      {act.bloque && (
-        <span className="text-xs shrink-0 hidden md:inline" style={{ color: 'var(--color-text-soft)' }}>{act.bloque}</span>
-      )}
-    </div>
-  )
-}
-
 // ─── Step 2 ───────────────────────────────────────────────────────────────────
 
 export function Step2Actividades() {
-  const { actividades, addActividad, updateActividad, removeActividad, reorderActividad, goToStep } = useWizardStore()
-  const [adding,      setAdding]      = useState(false)
-  const [editingIdx,  setEditingIdx]  = useState<number | null>(null)
-  const [activeId,    setActiveId]    = useState<number | null>(null)
+  const { actividades, addActividad, updateActividad, removeActividad, reorderByArray, goToStep } = useWizardStore()
+  const [adding,     setAdding]     = useState(false)
+  const [editingIdx, setEditingIdx] = useState<number | null>(null)
 
   const { data: session } = useSession()
   const currentUserId   = (session?.user as unknown as { userId?: number })?.userId ?? null
   const currentUserName = session?.user?.name ?? null
 
-  // edit + delete: only the creator (or legacy activities without owner)
   const canManage = (act: IActividad) =>
     !act.isDefault && (!act.creadoPorId || act.creadoPorId === currentUserId)
 
-  // drag to reorder: any non-default activity
-  const canDrag = (act: IActividad) => !act.isDefault
-
-  // Sensors — require 8px movement to start drag (prevents accidental drags on click)
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-  )
-
-  // IDs for SortableContext = global indices of custom (non-default) actividades
-  const sortableIds = actividades
-    .map((a, idx) => ({ a, idx }))
-    .filter(({ a }) => !a.isDefault)
-    .map(({ idx }) => idx)
-
-  const activeAct = activeId !== null ? actividades[activeId] : null
-
-  const handleDragStart = ({ active }: DragStartEvent) => {
-    setActiveId(active.id as number)
-    setEditingIdx(null) // close any open edit form
-  }
-
-  const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    setActiveId(null)
-    if (!over || active.id === over.id) return
-    reorderActividad(active.id as number, over.id as number)
-  }
+  const defaultActividades = actividades.filter(a => a.isDefault)
+  const customActividades  = actividades.filter(a => !a.isDefault)
 
   const handleAdd = (data: ActFormData) => {
     addActividad({
-      nombre: data.nombre,
-      bloque: data.bloque || undefined,
-      proceso: undefined,
-      jornadas: undefined,
-      creadoPorId: currentUserId,
+      nombre:          data.nombre,
+      bloque:          data.bloque || undefined,
+      proceso:         undefined,
+      jornadas:        undefined,
+      creadoPorId:     currentUserId,
       creadoPorNombre: currentUserName,
-      componentes: [],
+      componentes:     [],
     })
     setAdding(false)
   }
 
-  const handleUpdate = (idx: number, data: ActFormData) => {
-    updateActividad(idx, { ...actividades[idx], nombre: data.nombre, bloque: data.bloque || undefined })
+  const handleUpdate = (globalIdx: number, data: ActFormData) => {
+    updateActividad(globalIdx, { ...actividades[globalIdx], nombre: data.nombre, bloque: data.bloque || undefined })
     setEditingIdx(null)
   }
 
@@ -330,16 +269,18 @@ export function Step2Actividades() {
     <div className="space-y-4">
       {actividades.length > 0 && (
         <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--color-border)' }}>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+          <DragDropProvider
+            onDragEnd={(event) => {
+              // move reorders only custom activities; defaults stay in place
+              const newCustom = move(customActividades, event)
+              reorderByArray([...defaultActividades, ...newCustom])
+              setEditingIdx(null)
+            }}
           >
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ backgroundColor: 'var(--color-petroleum)', color: '#fff' }}>
-                  <th className="px-3 py-2 text-left font-medium w-10">#</th>
+                  <th className="px-3 py-2 text-left font-medium w-12">#</th>
                   <th className="px-3 py-2 text-left font-medium">Nombre actividad</th>
                   <th className="px-3 py-2 text-left font-medium hidden md:table-cell w-40">Bloque</th>
                   <th className="px-3 py-2 text-center font-medium w-24 hidden sm:table-cell">Jornadas</th>
@@ -348,80 +289,60 @@ export function Step2Actividades() {
                 </tr>
               </thead>
 
-              {/* Actividades base — no son sortables */}
+              {/* Actividades base — estáticas, no arrastrables */}
               <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
-                {actividades
-                  .map((act, idx) => ({ act, idx }))
-                  .filter(({ act }) => act.isDefault)
-                  .map(({ act, idx }, row) => (
-                    <Fragment key={idx}>
-                      <tr className="hover:bg-[rgba(0,66,84,0.02)] transition-colors">
-                        <td className="px-3 py-2.5 w-10">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-4" />
-                            <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{row + 1}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{act.nombre}</td>
-                        <td className="px-3 py-2.5 hidden md:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>{act.bloque || '—'}</td>
-                        <td className="px-3 py-2.5 text-center text-xs hidden sm:table-cell" style={{ color: 'var(--color-text)' }}>{act.jornadas ?? '—'}</td>
-                        <td className="px-3 py-2.5 hidden lg:table-cell">
-                          <CreadoPorBadge act={act} currentUserId={currentUserId} />
-                        </td>
-                        <td />
-                      </tr>
-                    </Fragment>
-                  ))}
+                {defaultActividades.map((act, i) => (
+                  <tr key={act.nombre} className="hover:bg-[rgba(0,66,84,0.02)] transition-colors">
+                    <td className="px-3 py-2.5 w-12">
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-block w-5" />
+                        <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{i + 1}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{act.nombre}</td>
+                    <td className="px-3 py-2.5 hidden md:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>{act.bloque || '—'}</td>
+                    <td className="px-3 py-2.5 text-center text-xs hidden sm:table-cell" style={{ color: 'var(--color-text)' }}>{act.jornadas ?? '—'}</td>
+                    <td className="px-3 py-2.5 hidden lg:table-cell">
+                      <CreadoPorBadge act={act} currentUserId={currentUserId} />
+                    </td>
+                    <td />
+                  </tr>
+                ))}
               </tbody>
 
               {/* Actividades custom — sortables */}
-              <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-                <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
-                  {actividades
-                    .map((act, idx) => ({ act, idx }))
-                    .filter(({ act }) => !act.isDefault)
-                    .map(({ act, idx }, customRow) => {
-                      const rowNum = actividades.filter(a => a.isDefault).length + customRow + 1
-                      return (
-                        <SortableRow
-                          key={idx}
-                          globalIdx={idx}
-                          act={act}
-                          rowNum={rowNum}
-                          canManage={canManage(act)}
-                          canDrag={canDrag(act)}
-                          isEditing={editingIdx === idx}
-                          isDragDisabled={editingIdx !== null || adding}
-                          currentUserId={currentUserId}
-                          onEdit={() => { setEditingIdx(idx); setAdding(false) }}
-                          onRemove={() => removeActividad(idx)}
-                          editForm={
-                            <ActividadForm
-                              initial={act}
-                              onSave={data => handleUpdate(idx, data)}
-                              onCancel={() => setEditingIdx(null)}
-                            />
-                          }
+              <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+                {customActividades.length > 0 && (
+                  <tr aria-hidden><td colSpan={6} style={{ padding: 0, height: 0, borderTop: '1px solid #BCBBB5' }} /></tr>
+                )}
+                {customActividades.map((act, customIdx) => {
+                  const globalIdx = actividades.indexOf(act)
+                  const rowNum    = defaultActividades.length + customIdx + 1
+                  return (
+                    <SortableRow
+                      key={act.nombre}
+                      act={act}
+                      index={customIdx}
+                      rowNum={rowNum}
+                      canManage={canManage(act)}
+                      isEditing={editingIdx === globalIdx}
+                      isDragDisabled={editingIdx !== null || adding}
+                      currentUserId={currentUserId}
+                      onEdit={() => { setEditingIdx(globalIdx); setAdding(false) }}
+                      onRemove={() => removeActividad(globalIdx)}
+                      editForm={
+                        <ActividadForm
+                          initial={act}
+                          onSave={data => handleUpdate(globalIdx, data)}
+                          onCancel={() => setEditingIdx(null)}
                         />
-                      )
-                    })}
-                </tbody>
-              </SortableContext>
+                      }
+                    />
+                  )
+                })}
+              </tbody>
             </table>
-
-            {/* Overlay — muestra el elemento siendo arrastrado */}
-            <DragOverlay>
-              {activeAct && activeId !== null && (
-                <DragPreviewRow
-                  act={activeAct}
-                  rowNum={
-                    actividades.filter(a => a.isDefault).length +
-                    actividades.slice(0, activeId + 1).filter(a => !a.isDefault).length
-                  }
-                />
-              )}
-            </DragOverlay>
-          </DndContext>
+          </DragDropProvider>
         </div>
       )}
 
@@ -433,9 +354,7 @@ export function Step2Actividades() {
         </Card>
       )}
 
-      {adding && (
-        <ActividadForm onSave={handleAdd} onCancel={() => setAdding(false)} />
-      )}
+      {adding && <ActividadForm onSave={handleAdd} onCancel={() => setAdding(false)} />}
 
       {!adding && (
         <Button variant="secondary" size="sm" onClick={() => { setAdding(true); setEditingIdx(null) }}>
@@ -445,11 +364,7 @@ export function Step2Actividades() {
 
       <div className="flex justify-between pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
         <Button variant="secondary" onClick={() => goToStep(1)}>← Anterior</Button>
-        <Button
-          variant="primary"
-          disabled={actividades.length === 0}
-          onClick={() => goToStep(3)}
-        >
+        <Button variant="primary" disabled={actividades.length === 0} onClick={() => goToStep(3)}>
           Siguiente: Construcción →
         </Button>
       </div>

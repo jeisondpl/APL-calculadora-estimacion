@@ -58,7 +58,8 @@ interface WizardState {
   addActividad:      (a: IActividad) => void
   updateActividad:   (idx: number, a: IActividad) => void
   removeActividad:   (idx: number) => void
-  reorderActividad:  (from: number, to: number) => void
+  reorderActividad:   (from: number, to: number) => void
+  reorderByArray:     (actividades: IActividad[]) => void
 
   // Componentes por actividad
   addComponente:    (actIdx: number, c: IActividadComponente) => void
@@ -92,6 +93,9 @@ export const useWizardStore = create<WizardState>((set) => ({
 
   removeActividad: idx =>
     set(s => ({ actividades: s.actividades.filter((_, i) => i !== idx).map((a, i) => ({ ...a, orden: i })) })),
+
+  reorderByArray: (newActividades) =>
+    set({ actividades: newActividades.map((a, i) => ({ ...a, orden: i })) }),
 
   reorderActividad: (from, to) =>
     set(s => {
