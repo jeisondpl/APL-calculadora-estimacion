@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── AUTH / USUARIOS ─────────────────────────────────────────────────────────
+
+model Rol {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(50)  // SUPERUSUARIO | PRODUCT_OWNER | DESARROLLADOR | QA
+  usuarios Usuario[]
+
+  @@map("roles")
+}
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(200)
+  email        String   @unique @db.VarChar(200)
+  passwordHash String   @map("password_hash") @db.VarChar(200)
+  activo       Boolean  @default(true)
+  rolId        Int      @map("rol_id")
+  rol          Rol      @relation(fields: [rolId], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt      @map("updated_at")
+
+  @@map("usuarios")
+}
+
 // ─── CATÁLOGOS ────────────────────────────────────────────────────────────────
 
 model Lenguaje {
