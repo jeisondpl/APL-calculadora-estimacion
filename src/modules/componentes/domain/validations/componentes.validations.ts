@@ -14,7 +14,7 @@ export function validateCreateComponente(args: IArgsCreateComponente): string | 
     if (v.pctCopilot < 0 || v.pctCopilot > 100)
                                         return '% Copilot debe estar entre 0 y 100'
     if (v.pctTme < 0 || v.pctTme > 100)
-                                        return '% TME debe estar entre 0 y 100'
+                                        return '% TIGO debe estar entre 0 y 100'
   }
 
   return null

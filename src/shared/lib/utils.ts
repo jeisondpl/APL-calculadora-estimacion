@@ -82,11 +82,11 @@ export function estimacionToCsv(estimacion: {
     ['Resumen'],
     ['Tiempo base (min)',    String(estimacion.totalBaseMin)],
     ['Tiempo Copilot (min)', String(estimacion.totalCopilotMin)],
-    ['Tiempo TME (min)',     String(estimacion.totalTmeMin)],
+    ['Tiempo TIGO (min)',     String(estimacion.totalTmeMin)],
     ['Ahorro Copilot (min)', String(estimacion.totalBaseMin - estimacion.totalCopilotMin)],
     [],
     ['Componente', 'Lenguaje', 'Tecnología', 'Cantidad',
-     'Base (min)', 'Copilot (min)', 'TME (min)'],
+     'Base (min)', 'Copilot (min)', 'TIGO (min)'],
     ...estimacion.items.map(i => [
       i.nombreComponente,
       i.lenguajeNombre,

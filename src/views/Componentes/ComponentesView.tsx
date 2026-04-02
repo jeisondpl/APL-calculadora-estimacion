@@ -112,7 +112,7 @@ export function ComponentesView() {
       ),
     },
     {
-      key: 'totalTmeMin', header: 'TME', width: '9%', align: 'right',
+      key: 'totalTmeMin', header: 'TIGO', width: '9%', align: 'right',
       render: r => (
         <span style={{ color: 'var(--color-accent-orange)' }}>
           {formatMinutes(r.totalTmeMin)}

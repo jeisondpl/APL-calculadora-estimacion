@@ -128,7 +128,7 @@ export function HistorialView() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>TME</p>
+                        <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>TIGO</p>
                         <p className="text-sm font-semibold" style={{ color: 'var(--color-accent-orange)' }}>
                           {formatMinutes(item.totalTmeMin)}
                         </p>
@@ -190,7 +190,7 @@ export function HistorialView() {
               {[
                 { label: 'Tiempo base',  value: formatMinutes(detalle.totalBaseMin),    color: 'var(--color-text)' },
                 { label: 'Con Copilot',  value: formatMinutes(detalle.totalCopilotMin), color: 'var(--color-accent-purple)' },
-                { label: 'TME',          value: formatMinutes(detalle.totalTmeMin),      color: 'var(--color-accent-orange)' },
+                { label: 'TIGO',          value: formatMinutes(detalle.totalTmeMin),      color: 'var(--color-accent-orange)' },
               ].map(kpi => (
                 <div key={kpi.label}
                   className="rounded-lg p-3 text-center"

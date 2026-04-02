@@ -102,7 +102,7 @@ export function ProyectosView() {
                       {[
                         { label: 'Base',    value: formatMinutes(item.totalBaseMin),    color: 'var(--color-text)' },
                         { label: 'Copilot', value: formatMinutes(item.totalCopilotMin), color: 'var(--color-accent-purple)' },
-                        { label: 'TME',     value: formatMinutes(item.totalTmeMin),     color: 'var(--color-accent-orange)' },
+                        { label: 'TIGO',     value: formatMinutes(item.totalTmeMin),     color: 'var(--color-accent-orange)' },
                       ].map(k => (
                         <div key={k.label} className="text-right">
                           <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{k.label}</p>

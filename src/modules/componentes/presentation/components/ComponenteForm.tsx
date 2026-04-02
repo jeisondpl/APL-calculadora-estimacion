@@ -167,7 +167,7 @@ export function ComponenteForm({ initial, options, onSubmit, onCancel, loading }
                     {...register(`variables.${idx}.pctCopilot`)}
                   />
                   <Input
-                    label="% TME"
+                    label="% TIGO"
                     type="number" min={0} max={100}
                     {...register(`variables.${idx}.pctTme`)}
                   />

@@ -55,7 +55,7 @@ export function EstimacionView() {
       ``,
       `Tiempo base:    ${formatMinutes(resultado.totalBaseMin)}`,
       `Con Copilot:    ${formatMinutes(resultado.totalCopilotMin)} (ahorro ${formatMinutes(ahorrocopilot)})`,
-      `TME:            ${formatMinutes(resultado.totalTmeMin)}`,
+      `TIGO:            ${formatMinutes(resultado.totalTmeMin)}`,
       ``,
       `Detalle:`,
       ...resultado.items.map(i =>
@@ -90,7 +90,7 @@ export function EstimacionView() {
             <div className="grid grid-cols-3 gap-3">
               <SummaryCard label="Base estimado"    value={formatMinutes(totalBasePreview)}    sublabel="Preview" />
               <SummaryCard label="Copilot estimado" value={formatMinutes(totalCopilotPreview)} sublabel="Preview" accent="purple" />
-              <SummaryCard label="TME estimado"     value={formatMinutes(totalTmePreview)}     sublabel="Preview" accent="orange" />
+              <SummaryCard label="TIGO estimado"     value={formatMinutes(totalTmePreview)}     sublabel="Preview" accent="orange" />
             </div>
           )}
 
@@ -233,7 +233,7 @@ export function EstimacionView() {
                 accent="purple"
               />
               <SummaryCard
-                label="TME"
+                label="TIGO"
                 value={formatMinutes(resultado.totalTmeMin)}
                 sublabel="Con factor multiplicador"
                 accent="orange"
