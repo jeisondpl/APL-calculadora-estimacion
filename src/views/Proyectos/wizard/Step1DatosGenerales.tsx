@@ -68,14 +68,14 @@ export function Step1DatosGenerales() {
             Objetivo
           </label>
           <textarea
-            rows={3}
+            rows={7}
             placeholder="Describe el objetivo del requerimiento..."
             className="w-full px-3 py-2 text-sm rounded-lg border outline-none resize-none transition-colors"
             style={{
               borderColor: 'var(--color-border)',
               backgroundColor: 'var(--color-surface)',
               color: 'var(--color-text)',
-            }}
+            }}                                        
             {...register('objetivo')}
           />
         </div>

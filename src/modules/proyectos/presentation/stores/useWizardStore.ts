@@ -21,6 +21,14 @@ const DATOS_INIT: DatosGenerales = {
   supervisadoPor:  '',
 }
 
+export const DEFAULT_ACTIVITY_NAMES = new Set([
+  'Análisis preliminar',
+  'Agendas de prefactibilidad y socialización',
+  'Análisis Funcional',
+  'Diseño técnico',
+  'Planificación, Valoración',
+])
+
 const ACTIVIDADES_DEFAULT: IActividad[] = [
   { nombre: 'Análisis preliminar',                       bloque: 'Back Bloque III',   orden: 0, isDefault: true, componentes: [] },
   { nombre: 'Agendas de prefactibilidad y socialización', bloque: 'Back Bloque III',   orden: 1, isDefault: true, componentes: [] },
@@ -112,5 +120,12 @@ export const useWizardStore = create<WizardState>((set) => ({
   reset: () => set({ step: 1, editingId: null, datosGenerales: DATOS_INIT, actividades: ACTIVIDADES_DEFAULT.map(a => ({ ...a, componentes: [] })) }),
 
   loadFromProyecto: (datos, actividades) =>
-    set({ step: 1, datosGenerales: datos, actividades }),
+    set({
+      step: 1,
+      datosGenerales: datos,
+      actividades: actividades.map(a => ({
+        ...a,
+        isDefault: DEFAULT_ACTIVITY_NAMES.has(a.nombre),
+      })),
+    }),
 }))

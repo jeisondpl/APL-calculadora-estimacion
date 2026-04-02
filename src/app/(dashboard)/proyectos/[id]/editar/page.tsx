@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { use } from 'react'
 import { PageHeader } from '@/shared/components/ui'
-import { ProyectoWizard }         from '@/views/Proyectos/wizard/ProyectoWizard'
-import { useWizardStore }          from '@/modules/proyectos'
-import { useProyectosController }  from '@/modules/proyectos'
+import { ProyectoWizard }        from '@/views/Proyectos/wizard/ProyectoWizard'
+import { useWizardStore }         from '@/modules/proyectos'
+import { useProyectosController } from '@/modules/proyectos'
 
 export default function EditarProyectoPage({
   params,
@@ -15,10 +15,13 @@ export default function EditarProyectoPage({
   const { id } = use(params)
   const numId  = parseInt(id)
 
-  const { _getById } = useProyectosController()
+  const { _getById }                    = useProyectosController()
   const { loadFromProyecto, setEditingId } = useWizardStore()
 
+  const [ready, setReady] = useState(false)
+
   useEffect(() => {
+    setReady(false)
     _getById(numId).then(p => {
       if (!p) return
       setEditingId(numId)
@@ -54,6 +57,7 @@ export default function EditarProyectoPage({
           })),
         }))
       )
+      setReady(true)
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numId])
@@ -64,7 +68,13 @@ export default function EditarProyectoPage({
         title="Editar proyecto"
         subtitle="Modifica los datos, actividades y componentes"
       />
-      <ProyectoWizard editingId={numId} />
+      {ready ? (
+        <ProyectoWizard editingId={numId} />
+      ) : (
+        <div className="flex justify-center py-20">
+          <span className="w-6 h-6 border-2 border-[var(--color-petroleum)] border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   )
 }

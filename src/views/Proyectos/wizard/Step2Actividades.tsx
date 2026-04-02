@@ -127,7 +127,9 @@ export function Step2Actividades() {
                       {act.bloque || '—'}
                     </td>
                     <td className="px-3 py-2.5 text-center text-xs hidden sm:table-cell" style={{ color: 'var(--color-text)' }}>
-                      {act.componentes.length > 0 ? act.componentes.length : '—'}
+                      {act.isDefault
+                        ? (act.jornadas ?? '—')
+                        : (act.componentes.length > 0 ? act.componentes.length : '—')}
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-1 justify-end">
