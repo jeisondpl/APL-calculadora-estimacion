@@ -116,7 +116,7 @@ function DependenciaSelectorModal({
   const [search,  setSearch]  = useState('')
   const [checked, setChecked] = useState<Set<string>>(new Set(selected))
 
-  const available = allActividades.filter(a => a.nombre !== actividadNombre)
+  const available = allActividades.filter(a => !a.isDefault && a.nombre !== actividadNombre)
   const filtered  = available.filter(a =>
     a.nombre.toLowerCase().includes(search.toLowerCase()) ||
     (a.bloque ?? '').toLowerCase().includes(search.toLowerCase())
