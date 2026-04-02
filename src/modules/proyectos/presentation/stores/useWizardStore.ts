@@ -21,6 +21,14 @@ const DATOS_INIT: DatosGenerales = {
   supervisadoPor:  '',
 }
 
+const ACTIVIDADES_DEFAULT: IActividad[] = [
+  { nombre: 'Análisis preliminar',                       bloque: 'Back Bloque III',   orden: 0, isDefault: true, componentes: [] },
+  { nombre: 'Agendas de prefactibilidad y socialización', bloque: 'Back Bloque III',   orden: 1, isDefault: true, componentes: [] },
+  { nombre: 'Análisis Funcional',                        bloque: 'Back Bloque III',   orden: 2, isDefault: true, componentes: [] },
+  { nombre: 'Diseño técnico',                            bloque: 'Magento Bloque II', orden: 3, isDefault: true, componentes: [] },
+  { nombre: 'Planificación, Valoración',                 bloque: 'Back Bloque III',   orden: 4, isDefault: true, componentes: [] },
+]
+
 interface WizardState {
   step:           1 | 2 | 3
   editingId:      number | null   // null = nuevo, number = editar
@@ -54,7 +62,7 @@ export const useWizardStore = create<WizardState>((set) => ({
   step:           1,
   editingId:      null,
   datosGenerales: DATOS_INIT,
-  actividades:    [],
+  actividades:    ACTIVIDADES_DEFAULT,
 
   goToStep:     s    => set({ step: s }),
   setEditingId: id   => set({ editingId: id }),
@@ -101,7 +109,7 @@ export const useWizardStore = create<WizardState>((set) => ({
       ),
     })),
 
-  reset: () => set({ step: 1, editingId: null, datosGenerales: DATOS_INIT, actividades: [] }),
+  reset: () => set({ step: 1, editingId: null, datosGenerales: DATOS_INIT, actividades: ACTIVIDADES_DEFAULT.map(a => ({ ...a, componentes: [] })) }),
 
   loadFromProyecto: (datos, actividades) =>
     set({ step: 1, datosGenerales: datos, actividades }),

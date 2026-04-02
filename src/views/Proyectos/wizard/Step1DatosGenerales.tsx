@@ -7,6 +7,20 @@ import { Input, Button } from '@/shared/components/ui'
 import { useWizardStore } from '@/modules/proyectos'
 import type { DatosGenerales } from '@/modules/proyectos'
 
+const SUPERVISORES = [
+  'Rodriguez Martinez, John Eder',
+  'Lopez Moreno, Juan Sebastian',
+  'Velasco Lizarazo, Diana Marcela',
+] as const
+
+const ESTIMADORES = [
+  'Fernando Andrés Herdoíza Vivar',
+  'Duvan Camilo García Panqueva',
+  'Henry Antonio Cabarcas Granados',
+  'Jeison Antonio Díaz Palmera',
+  'Rodriguez Martinez, John Eder',
+] as const
+
 const schema = z.object({
   requerimiento:   z.string().min(1, 'Requerido'),
   nombreProyecto:  z.string().min(1, 'Requerido'),
@@ -76,16 +90,44 @@ export function Step1DatosGenerales() {
           type="date"
           {...register('fechaEjecucion')}
         />
-        <Input
-          label="Estimado por"
-          placeholder="ej: García López, Juan"
-          {...register('estimadoPor')}
-        />
-        <Input
-          label="Supervisado por"
-          placeholder="ej: Martínez Ruiz, Ana"
-          {...register('supervisadoPor')}
-        />
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>
+            Estimado por
+          </label>
+          <select
+            {...register('estimadoPor')}
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+            style={{
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text)',
+              backgroundColor: 'var(--color-surface)',
+            }}
+          >
+            <option value="">— Seleccionar —</option>
+            {ESTIMADORES.map(e => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>
+            Supervisado por
+          </label>
+          <select
+            {...register('supervisadoPor')}
+            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+            style={{
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text)',
+              backgroundColor: 'var(--color-surface)',
+            }}
+          >
+            <option value="">— Seleccionar —</option>
+            {SUPERVISORES.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="flex justify-end pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const tecnologiaId = searchParams.get('tecnologiaId')
     const search       = searchParams.get('search')
     const page         = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
-    const limit        = Math.min(100, parseInt(searchParams.get('limit') ?? '20'))
+    const limit        = Math.min(500, parseInt(searchParams.get('limit') ?? '20'))
 
     const where = {
       activo: true,

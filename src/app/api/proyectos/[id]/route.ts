@@ -33,7 +33,7 @@ async function buildItemsAndTotals(actividades: IActividad[]) {
       return { componenteId: ac.componenteId, cantidad: cant, reutilizar: ac.reutilizar ?? false, tiempoBaseMin: baseMin, tiempoCopilotMin: copilotMin, tiempoTmeMin: tmeMin }
     })
     proyTotalBase += actBase; proyTotalCopilot += actCopilot; proyTotalTme += actTme
-    return { nombre: act.nombre, proceso: act.proceso ?? null, bloque: act.bloque ?? null, jornadas: act.jornadas ?? null, fechaInicio: toDate(act.fechaInicio), fechaFin: toDate(act.fechaFin), orden: act.orden ?? idx, totalBaseMin: actBase, totalCopilotMin: actCopilot, totalTmeMin: actTme, componentes: { create: componentesData } }
+    return { nombre: act.nombre, proceso: act.proceso ?? null, bloque: act.bloque ?? null, jornadas: act.isDefault ? (act.jornadas ?? null) : (act.componentes.length || null), fechaInicio: toDate(act.fechaInicio), fechaFin: toDate(act.fechaFin), orden: act.orden ?? idx, totalBaseMin: actBase, totalCopilotMin: actCopilot, totalTmeMin: actTme, componentes: { create: componentesData } }
   })
 
   return { actividadesData, proyTotalBase, proyTotalCopilot, proyTotalTme }

@@ -49,25 +49,40 @@ function ActividadDetalle({ act }: { act: IResponseActividad }) {
   return (
     <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--color-border)' }}>
       {/* Header */}
-      <div className="px-4 py-3 flex items-start justify-between gap-4"
+      <div className="px-4 py-3 flex items-center gap-4 flex-wrap"
         style={{ backgroundColor: 'var(--color-petroleum)' }}>
-        <div className="min-w-0">
+        {/* Número + nombre */}
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-white">{act.orden + 1}. {act.nombre}</p>
-          <div className="flex gap-3 mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
-            {act.proceso  && <span>{act.proceso}</span>}
-            {act.bloque   && <span>· {act.bloque}</span>}
-            {act.jornadas && <span>· {act.jornadas} jornadas</span>}
-            {act.fechaInicio && (
-              <span>· {new Date(act.fechaInicio).toLocaleDateString('es-ES')}
-                {act.fechaFin ? ` → ${new Date(act.fechaFin).toLocaleDateString('es-ES')}` : ''}
-              </span>
-            )}
-          </div>
+          {act.bloque && (
+            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{act.bloque}</p>
+          )}
         </div>
+        {/* Jornadas */}
+        <div className="shrink-0 text-center">
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Jornadas</p>
+          <p className="text-sm font-semibold text-white">{act.jornadas ?? '—'}</p>
+        </div>
+        {/* Fecha inicio */}
+        <div className="shrink-0 text-center hidden sm:block">
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Fecha inicio</p>
+          <p className="text-sm text-white">
+            {act.fechaInicio ? new Date(act.fechaInicio).toLocaleDateString('es-ES') : '—'}
+          </p>
+        </div>
+        {/* Fecha fin */}
+        <div className="shrink-0 text-center hidden sm:block">
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Fecha fin</p>
+          <p className="text-sm text-white">
+            {act.fechaFin ? new Date(act.fechaFin).toLocaleDateString('es-ES') : '—'}
+          </p>
+        </div>
+        {/* Tiempo base */}
         {totalBase > 0 && (
-          <div className="shrink-0 text-right text-xs text-white">
-            <p className="font-semibold">{formatMinutes(totalBase)}</p>
-            <p style={{ color: 'rgba(255,255,255,0.7)' }}>{totalH}h · {totalJ}j</p>
+          <div className="shrink-0 text-right">
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Base</p>
+            <p className="text-sm font-semibold text-white">{formatMinutes(totalBase)}</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>{totalH}h · {totalJ}j</p>
           </div>
         )}
       </div>
@@ -147,6 +162,9 @@ export function ProyectoDetalleView({ id }: { id: number }) {
             >
               ↓ Exportar CSV
             </Button>
+            <Link href={`/proyectos/${id}/planificar`}>
+              <Button size="sm" variant="secondary">📅 Planificar</Button>
+            </Link>
             <Link href={`/proyectos/${id}/editar`}>
               <Button size="sm" variant="secondary">✎ Editar</Button>
             </Link>
@@ -182,15 +200,68 @@ export function ProyectoDetalleView({ id }: { id: number }) {
         <SummaryCard label="TME"             value={formatMinutes(proyecto.totalTmeMin)}     sublabel={`${proyecto.actividades.length} actividades`} accent="orange" />
       </div>
 
-      {/* Actividades */}
-      <div className="space-y-4">
-        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-soft)' }}>
-          Construcción — {proyecto.actividades.length} actividades
-        </p>
-        {proyecto.actividades.map(act => (
-          <ActividadDetalle key={act.id} act={act} />
-        ))}
-      </div>
+      {/* Actividades base (sin componentes) */}
+      {(() => {
+        const base = proyecto.actividades.filter(a => a.componentes.length === 0)
+        if (base.length === 0) return null
+        return (
+          <div className="mb-6">
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-soft)' }}>
+              Actividades base — {base.length} ítems
+            </p>
+            <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--color-border)' }}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--color-petroleum)', color: '#fff' }}>
+                    <th className="px-3 py-2.5 text-left font-medium w-8">#</th>
+                    <th className="px-3 py-2.5 text-left font-medium">Actividad</th>
+                    <th className="px-3 py-2.5 text-left font-medium w-36 hidden md:table-cell">Bloque</th>
+                    <th className="px-3 py-2.5 text-center font-medium w-20">Jornadas</th>
+                    <th className="px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell">Fecha inicio</th>
+                    <th className="px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell">Fecha fin</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+                  {base.map((act, idx) => (
+                    <tr key={act.id} className="hover:bg-[rgba(0,66,84,0.03)] transition-colors">
+                      <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--color-text-soft)' }}>{idx + 1}</td>
+                      <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{act.nombre}</td>
+                      <td className="px-3 py-2.5 hidden md:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                        {act.bloque || '—'}
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-sm font-semibold" style={{ color: 'var(--color-petroleum)' }}>
+                        {act.jornadas ?? '—'}
+                      </td>
+                      <td className="px-3 py-2.5 hidden sm:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                        {act.fechaInicio ? new Date(act.fechaInicio).toLocaleDateString('es-ES') : '—'}
+                      </td>
+                      <td className="px-3 py-2.5 hidden sm:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                        {act.fechaFin ? new Date(act.fechaFin).toLocaleDateString('es-ES') : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Actividades con componentes */}
+      {(() => {
+        const conComp = proyecto.actividades.filter(a => a.componentes.length > 0)
+        if (conComp.length === 0) return null
+        return (
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-soft)' }}>
+              Construcción — {conComp.length} actividades
+            </p>
+            {conComp.map(act => (
+              <ActividadDetalle key={act.id} act={act} />
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }

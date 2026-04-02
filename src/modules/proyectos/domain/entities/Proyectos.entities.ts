@@ -24,6 +24,7 @@ export interface IActividad {
   fechaInicio?: string   // ISO date string
   fechaFin?:   string
   orden?:      number
+  isDefault?:  boolean   // actividades precargadas, no eliminables
   componentes: IActividadComponente[]
   // totales calculados
   totalBaseMin?:    number

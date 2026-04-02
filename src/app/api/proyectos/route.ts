@@ -57,7 +57,7 @@ async function buildItemsAndTotals(actividades: IActividad[]) {
       nombre:      act.nombre,
       proceso:     act.proceso ?? null,
       bloque:      act.bloque  ?? null,
-      jornadas:    act.jornadas ?? null,
+      jornadas:    act.isDefault ? (act.jornadas ?? null) : (act.componentes.length || null),
       fechaInicio: toDate(act.fechaInicio),
       fechaFin:    toDate(act.fechaFin),
       orden:       act.orden ?? idx,
