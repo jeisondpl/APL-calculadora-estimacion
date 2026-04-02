@@ -68,6 +68,7 @@ export interface IResponseProyectoSummary {
   totalCopilotMin: number
   totalTmeMin:    number
   actividadesCount: number
+  estado:         string
   createdAt:      string
 }
 

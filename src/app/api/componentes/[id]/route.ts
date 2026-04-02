@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/shared/lib/prisma'
 import { successResponse, errorResponse } from '@/shared/lib/HttpResponse'
+import { requireRole } from '@/shared/lib/requireRole'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -23,6 +24,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 // ─── PATCH /api/componentes/[id] ─────────────────────────────────────────────
 export async function PATCH(request: NextRequest, { params }: Params) {
+  const denied = await requireRole('SUPERUSUARIO', 'PRODUCT_OWNER')
+  if (denied) return denied
   try {
     const { id } = await params
     const body = await request.json()
@@ -41,6 +44,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 // ─── DELETE /api/componentes/[id] — soft delete ──────────────────────────────
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const denied = await requireRole('SUPERUSUARIO', 'PRODUCT_OWNER')
+  if (denied) return denied
   try {
     const { id } = await params
     const deleted = await prisma.componente.update({

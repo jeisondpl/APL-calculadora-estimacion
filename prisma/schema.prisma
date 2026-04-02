@@ -147,6 +147,7 @@ model Proyecto {
   totalBaseMin    Int      @default(0) @map("total_base_min")
   totalCopilotMin Int      @default(0) @map("total_copilot_min")
   totalTmeMin     Int      @default(0) @map("total_tme_min")
+  estado          String   @default("ABIERTO")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt      @map("updated_at")
 

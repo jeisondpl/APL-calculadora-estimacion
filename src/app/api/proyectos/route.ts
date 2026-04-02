@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { successResponse, errorResponse } from '@/shared/lib/HttpResponse'
+import { requireRole } from '@/shared/lib/requireRole'
 import type { IArgsCreateProyecto, IActividad } from '@/modules/proyectos'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -155,6 +157,13 @@ export async function GET(req: NextRequest) {
       prisma.proyecto.count(),
     ])
 
+    // Traer estado via raw para no depender del cliente Prisma generado
+    const ids = items.length > 0 ? items.map(p => p.id) : [0]
+    const estadoRows = await prisma.$queryRaw<{ id: number; estado: string }[]>(
+      Prisma.sql`SELECT id, estado FROM proyectos WHERE id IN (${Prisma.join(ids)})`
+    )
+    const estadoMap = new Map(estadoRows.map(r => [Number(r.id), r.estado]))
+
     const response = {
       items: items.map(p => ({
         id:              p.id,
@@ -168,6 +177,7 @@ export async function GET(req: NextRequest) {
         totalCopilotMin: p.totalCopilotMin,
         totalTmeMin:     p.totalTmeMin,
         actividadesCount: p.actividades.length,
+        estado:          estadoMap.get(p.id) ?? 'ABIERTO',
         createdAt:       p.createdAt.toISOString(),
       })),
       total, page, limit,
@@ -182,6 +192,8 @@ export async function GET(req: NextRequest) {
 // ─── POST /api/proyectos ──────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const denied = await requireRole('SUPERUSUARIO', 'PRODUCT_OWNER')
+  if (denied) return denied
   try {
     const body: IArgsCreateProyecto = await req.json()
 

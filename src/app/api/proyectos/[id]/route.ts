@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { successResponse, errorResponse } from '@/shared/lib/HttpResponse'
+import { requireRole } from '@/shared/lib/requireRole'
 import type { IArgsUpdateProyecto, IActividad } from '@/modules/proyectos'
 
 type RouteCtx = { params: Promise<{ id: string }> }
@@ -86,7 +88,10 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
     const numId = parseInt(id)
     if (isNaN(numId)) return NextResponse.json(errorResponse('ID inválido', 400), { status: 400 })
     const p = await fetchProyecto(numId)
-    return NextResponse.json(successResponse(formatProyecto(p)))
+    const [estadoRow] = await prisma.$queryRaw<{ estado: string }[]>(
+      Prisma.sql`SELECT estado FROM proyectos WHERE id = ${numId}`
+    )
+    return NextResponse.json(successResponse({ ...formatProyecto(p), estado: estadoRow?.estado ?? 'ABIERTO' }))
   } catch (e) {
     const notFound = e instanceof Error && e.message.includes('No record found')
     return NextResponse.json(errorResponse(notFound ? 'Proyecto no encontrado' : (e instanceof Error ? e.message : 'Error'), notFound ? 404 : 500), { status: notFound ? 404 : 500 })
@@ -136,6 +141,8 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
 
 // ─── DELETE /api/proyectos/[id] ───────────────────────────────────────────────
 export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
+  const denied = await requireRole('SUPERUSUARIO', 'PRODUCT_OWNER')
+  if (denied) return denied
   try {
     const { id } = await params
     const numId = parseInt(id)

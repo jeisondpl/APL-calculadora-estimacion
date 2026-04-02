@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/shared/lib/prisma'
 import { successResponse, errorResponse } from '@/shared/lib/HttpResponse'
+import { requireRole } from '@/shared/lib/requireRole'
 
 // ─── GET /api/componentes ────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
@@ -83,6 +84,8 @@ export async function GET(request: NextRequest) {
 
 // ─── POST /api/componentes ────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
+  const denied = await requireRole('SUPERUSUARIO', 'PRODUCT_OWNER')
+  if (denied) return denied
   try {
     const body = await request.json()
     const {

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { useProyectosController } from '@/modules/proyectos'
 import { PageHeader, Card, Button, Badge, SummaryCard } from '@/shared/components/ui'
 import { formatMinutes, downloadFile } from '@/shared/lib/utils'
@@ -163,6 +164,9 @@ function ActividadDetalle({ act }: { act: IResponseActividad }) {
 
 export function ProyectoDetalleView({ id }: { id: number }) {
   const { proyecto, loading, error, _getById } = useProyectosController()
+  const { data: session } = useSession()
+  const rol     = (session?.user as unknown as { rol?: string })?.rol ?? ''
+  const canEdit = rol === 'SUPERUSUARIO' || rol === 'PRODUCT_OWNER'
 
   useEffect(() => {
     _getById(id)
@@ -202,16 +206,21 @@ export function ProyectoDetalleView({ id }: { id: number }) {
             >
               ↓ Exportar CSV
             </Button>
-            <Link href={`/proyectos/${id}/planificar`}>
-              <Button size='sm' variant='secondary'>
-                📅 Planificar
-              </Button>
-            </Link>
-            <Link href={`/proyectos/${id}/editar`}>
-              <Button size='sm' variant='secondary'>
-                ✎ Editar
-              </Button>
-            </Link>
+            {/* Planificar: solo SUPERUSUARIO y PRODUCT_OWNER */}
+            {canEdit && (
+              <Link href={`/proyectos/${id}/planificar`}>
+                <Button size='sm' variant='secondary'>
+                  📅 Planificar
+                </Button>
+              </Link>
+            )}
+            {(canEdit || (proyecto as unknown as { estado?: string }).estado !== 'CERRADO') && (
+              <Link href={`/proyectos/${id}/editar`}>
+                <Button size='sm' variant='secondary'>
+                  ✎ Editar
+                </Button>
+              </Link>
+            )}
             <Link href='/proyectos'>
               <Button size='sm' variant='secondary'>
                 ← Volver

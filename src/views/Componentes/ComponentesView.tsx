@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import { useComponentesController } from '@/modules/componentes'
 import { useCatalogosController } from '@/modules/catalogos'
 import { useEstimacionStore } from '@/modules/estimacion'
@@ -39,6 +40,10 @@ export function ComponentesView() {
   const { options, _loadAll }   = useCatalogosController()
   const { itemsSeleccionados }  = useEstimacionStore()
   const [isPending, startTransition] = useTransition()
+
+  const { data: session } = useSession()
+  const rol = (session?.user as unknown as { rol?: string })?.rol ?? ''
+  const canEdit = rol === 'SUPERUSUARIO' || rol === 'PRODUCT_OWNER'
 
   const [filtros, setFiltros]         = useState<IArgsListComponentes>({ page: 1, limit: 20 })
   const [modalOpen, setModalOpen]     = useState(false)
@@ -124,16 +129,20 @@ export function ComponentesView() {
       render: r => (
         <div className="flex items-center justify-end gap-1">
           <AgregarBtn componenteId={r.id} />
-          <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
-            ✎
-          </Button>
-          <Button
-            size="sm" variant="ghost"
-            style={{ color: '#C0392B' }}
-            onClick={() => openDelete(r)}
-          >
-            ✕
-          </Button>
+          {canEdit && (
+            <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
+              ✎
+            </Button>
+          )}
+          {canEdit && (
+            <Button
+              size="sm" variant="ghost"
+              style={{ color: '#C0392B' }}
+              onClick={() => openDelete(r)}
+            >
+              ✕
+            </Button>
+          )}
         </div>
       ),
     },
@@ -155,9 +164,11 @@ export function ComponentesView() {
                 </Button>
               </Link>
             )}
-            <Button variant="primary" onClick={() => setModalOpen(true)}>
-              + Nuevo componente
-            </Button>
+            {canEdit && (
+              <Button variant="primary" onClick={() => setModalOpen(true)}>
+                + Nuevo componente
+              </Button>
+            )}
           </div>
         }
       />
