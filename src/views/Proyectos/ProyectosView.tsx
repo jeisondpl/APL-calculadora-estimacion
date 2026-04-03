@@ -21,6 +21,74 @@ export function ProyectosView() {
   const [deleteTarget, setDeleteTarget] = useState<IResponseProyectoSummary | null>(null)
   const [deleting,     setDeleting]     = useState(false)
   const [togglingId,   setTogglingId]   = useState<number | null>(null)
+
+  // Modal asignar desarrolladores al cerrar
+  interface UsuarioOpt { id: number; nombre: string; rol: { nombre: string } }
+  interface ActAsig   { id: number; nombre: string; bloque: string | null; jornadas: number | null; asignadoAId: number | null }
+
+  const [devModal,    setDevModal]    = useState<IResponseProyectoSummary | null>(null)
+  const [devStep,     setDevStep]     = useState<1 | 2>(1)
+  const [devPool,     setDevPool]     = useState<UsuarioOpt[]>([])
+  const [devSelected, setDevSelected] = useState<Set<number>>(new Set())
+  const [devQuery,    setDevQuery]    = useState('')
+  const [devSaving,   setDevSaving]   = useState(false)
+  const [actAsig,     setActAsig]     = useState<ActAsig[]>([])
+
+  const filteredDevPool = devPool.filter(u =>
+    !devQuery.trim() || u.nombre.toLowerCase().includes(devQuery.toLowerCase())
+  )
+
+  const selectedDevs = devPool.filter(u => devSelected.has(u.id))
+
+  const openDevModal = async (item: IResponseProyectoSummary) => {
+    const [usersRes, proyRes] = await Promise.all([
+      axios.get<UsuarioOpt[]>('/api/usuarios/por-rol?roles=DESARROLLADOR,QA'),
+      axios.get<{ data: { actividades: ActAsig[] } }>(`/api/proyectos/${item.id}`),
+    ])
+    const sorted = [...usersRes.data].sort((a, b) =>
+      a.rol.nombre.localeCompare(b.rol.nombre) || a.nombre.localeCompare(b.nombre)
+    )
+    setDevPool(sorted)
+    const existingIds = new Set((item.estimadores ?? []).map((e: { id: number }) => e.id))
+    setDevSelected(existingIds)
+    setDevQuery('')
+    setDevStep(1)
+    setActAsig(
+      (proyRes.data.data.actividades ?? []).map((a: ActAsig) => ({
+        id:          a.id,
+        nombre:      a.nombre,
+        bloque:      a.bloque,
+        jornadas:    a.jornadas,
+        asignadoAId: a.asignadoAId,
+      }))
+    )
+    setDevModal(item)
+  }
+
+  const confirmDevModal = async () => {
+    if (!devModal) return
+    setDevSaving(true)
+    await axios.patch(`/api/proyectos/${devModal.id}/estado`, {
+      estado:           'CERRADO',
+      desarrolladorIds: Array.from(devSelected),
+      asignaciones:     actAsig.map(a => ({ actividadId: a.id, usuarioId: a.asignadoAId })),
+    })
+    await _list(page, LIMIT)
+    setDevSaving(false)
+    setDevModal(null)
+  }
+
+  // Asignar todo un bloque a un desarrollador
+  const asignarBloque = (bloque: string | null, usuarioId: number | null) => {
+    setActAsig(prev => prev.map(a => a.bloque === bloque ? { ...a, asignadoAId: usuarioId } : a))
+  }
+
+  // Bloques únicos de las actividades
+  const bloquesUnicos = useMemo(
+    () => [...new Set(actAsig.map(a => a.bloque))],
+    [actAsig]
+  )
+
   const LIMIT = 10
 
   useEffect(() => { _list(page, LIMIT) }, [_list, page])
@@ -44,9 +112,14 @@ export function ProyectosView() {
   }, [paginado?.items, search, filterEstado])
 
   const handleToggleEstado = async (item: IResponseProyectoSummary) => {
+    if (item.estado === 'ABIERTO') {
+      // Cerrar → mostrar modal de asignación de desarrolladores
+      await openDevModal(item)
+      return
+    }
+    // Reabrir → directo sin modal
     setTogglingId(item.id)
-    const nuevoEstado = item.estado === 'ABIERTO' ? 'CERRADO' : 'ABIERTO'
-    await axios.patch(`/api/proyectos/${item.id}/estado`, { estado: nuevoEstado })
+    await axios.patch(`/api/proyectos/${item.id}/estado`, { estado: 'ABIERTO' })
     await _list(page, LIMIT)
     setTogglingId(null)
   }
@@ -285,6 +358,191 @@ export function ProyectosView() {
             </div>
           )}
         </>
+      )}
+
+      {/* Modal asignar desarrolladores — 2 pasos */}
+      {devModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onMouseDown={e => { if (e.target === e.currentTarget) setDevModal(null) }}>
+          <div className="w-full rounded-xl shadow-2xl flex flex-col"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', maxHeight: '88vh', maxWidth: devStep === 1 ? 520 : 760 }}>
+
+            {/* Cabecera */}
+            <div className="px-5 py-4 flex items-center justify-between rounded-t-xl shrink-0" style={{ backgroundColor: 'var(--color-petroleum)' }}>
+              <div>
+                <h2 className="text-sm font-semibold text-white">
+                  {devStep === 1 ? 'Asignar desarrolladores' : 'Asignar actividades'}
+                </h2>
+                <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {devStep === 1
+                    ? `${devPool.length} disponibles · ${devSelected.size} seleccionado${devSelected.size !== 1 ? 's' : ''}`
+                    : `${actAsig.length} actividades · ${actAsig.filter(a => a.asignadoAId).length} asignadas`}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Indicador de paso */}
+                <div className="flex gap-1.5">
+                  {([1, 2] as const).map(s => (
+                    <div key={s} className="w-2 h-2 rounded-full" style={{ backgroundColor: devStep === s ? '#fff' : 'rgba(255,255,255,0.3)' }} />
+                  ))}
+                </div>
+                <button onClick={() => setDevModal(null)} className="text-white opacity-70 hover:opacity-100 text-lg leading-none">✕</button>
+              </div>
+            </div>
+
+            {/* ── PASO 1: Selección de desarrolladores ─────────────────────── */}
+            {devStep === 1 && (
+              <>
+                <div className="px-4 py-3 border-b shrink-0" style={{ borderColor: 'var(--color-border)' }}>
+                  <input autoFocus value={devQuery} onChange={e => setDevQuery(e.target.value)}
+                    placeholder="Buscar por nombre…"
+                    className="w-full px-3 py-2 text-sm rounded-lg border outline-none"
+                    style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
+                </div>
+
+                <div className="flex-1 overflow-y-auto">
+                  {filteredDevPool.length === 0 ? (
+                    <p className="text-sm py-8 text-center" style={{ color: 'var(--color-text-soft)' }}>No hay desarrolladores disponibles</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ backgroundColor: 'rgba(0,66,84,0.06)', borderBottom: '1px solid var(--color-border)' }}>
+                          <th className="w-10 px-4 py-2" />
+                          <th className="px-3 py-2 text-left font-medium" style={{ color: 'var(--color-text-soft)' }}>Nombre</th>
+                          <th className="px-3 py-2 text-left font-medium" style={{ color: 'var(--color-text-soft)' }}>Rol</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+                        {filteredDevPool.map(u => (
+                          <tr key={u.id} className="cursor-pointer hover:bg-[rgba(0,66,84,0.04)] transition-colors"
+                            onClick={() => setDevSelected(prev => { const n = new Set(prev); n.has(u.id) ? n.delete(u.id) : n.add(u.id); return n })}>
+                            <td className="px-4 py-2.5 text-center">
+                              <input type="checkbox" readOnly checked={devSelected.has(u.id)} className="w-4 h-4 accent-[var(--color-petroleum)]" />
+                            </td>
+                            <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--color-text)' }}>{u.nombre}</td>
+                            <td className="px-3 py-2.5">
+                              <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                                style={{
+                                  backgroundColor: u.rol.nombre === 'QA' ? 'rgba(16,185,129,0.1)' : 'rgba(0,66,84,0.1)',
+                                  color:           u.rol.nombre === 'QA' ? '#10b981' : 'var(--color-petroleum)',
+                                }}>
+                                {u.rol.nombre}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                <div className="px-5 py-3 border-t flex items-center justify-between shrink-0" style={{ borderColor: 'var(--color-border)' }}>
+                  <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                    {devSelected.size === 0 ? 'Ninguno seleccionado' : `${devSelected.size} seleccionado${devSelected.size !== 1 ? 's' : ''}`}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => setDevModal(null)}>Cancelar</Button>
+                    <Button variant="primary" size="sm" disabled={devSelected.size === 0} onClick={() => setDevStep(2)}>
+                      Siguiente →
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── PASO 2: Asignación de actividades ────────────────────────── */}
+            {devStep === 2 && (
+              <>
+                {/* Atajos por bloque */}
+                {bloquesUnicos.length > 0 && (
+                  <div className="px-4 py-3 border-b flex flex-wrap gap-2 shrink-0" style={{ borderColor: 'var(--color-border)', backgroundColor: 'rgba(0,66,84,0.03)' }}>
+                    <span className="text-xs font-medium self-center mr-1" style={{ color: 'var(--color-text-soft)' }}>Asignar bloque:</span>
+                    {bloquesUnicos.map(bloque => (
+                      <div key={bloque ?? '__null__'} className="flex items-center gap-1">
+                        <span className="text-xs font-medium" style={{ color: 'var(--color-petroleum)' }}>
+                          {bloque ?? 'Sin bloque'}
+                        </span>
+                        <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>→</span>
+                        <select
+                          className="text-xs px-2 py-1 rounded border outline-none"
+                          style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                          defaultValue=""
+                          onChange={e => {
+                            const val = e.target.value ? parseInt(e.target.value) : null
+                            asignarBloque(bloque, val)
+                            e.target.value = ''
+                          }}
+                        >
+                          <option value="">Seleccionar…</option>
+                          <option value="">— Sin asignar</option>
+                          {selectedDevs.map(u => (
+                            <option key={u.id} value={u.id}>{u.nombre}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tabla de actividades */}
+                <div className="flex-1 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0">
+                      <tr style={{ backgroundColor: 'rgba(0,66,84,0.06)', borderBottom: '1px solid var(--color-border)' }}>
+                        <th className="px-3 py-2 text-left font-medium w-6" style={{ color: 'var(--color-text-soft)' }}>#</th>
+                        <th className="px-3 py-2 text-left font-medium" style={{ color: 'var(--color-text-soft)' }}>Actividad</th>
+                        <th className="px-3 py-2 text-left font-medium w-28 hidden sm:table-cell" style={{ color: 'var(--color-text-soft)' }}>Bloque</th>
+                        <th className="px-3 py-2 text-center font-medium w-20 hidden sm:table-cell" style={{ color: 'var(--color-text-soft)' }}>Jornadas</th>
+                        <th className="px-3 py-2 text-left font-medium w-44" style={{ color: 'var(--color-text-soft)' }}>Asignar a</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+                      {actAsig.map((act, idx) => (
+                        <tr key={act.id} className="hover:bg-[rgba(0,66,84,0.03)] transition-colors">
+                          <td className="px-3 py-2 text-xs" style={{ color: 'var(--color-text-soft)' }}>{idx + 1}</td>
+                          <td className="px-3 py-2 font-medium" style={{ color: 'var(--color-text)' }}>{act.nombre}</td>
+                          <td className="px-3 py-2 hidden sm:table-cell text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                            {act.bloque || '—'}
+                          </td>
+                          <td className="px-3 py-2 text-center hidden sm:table-cell">
+                            {act.jornadas && act.jornadas > 0 ? (
+                              <span className="text-xs font-semibold" style={{ color: 'var(--color-petroleum)' }}>{act.jornadas}</span>
+                            ) : (
+                              <span className="text-xs" style={{ color: '#d97706' }}>⚠</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            <select
+                              className="w-full text-xs px-2 py-1.5 rounded border outline-none"
+                              style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                              value={act.asignadoAId ?? ''}
+                              onChange={e => {
+                                const val = e.target.value ? parseInt(e.target.value) : null
+                                setActAsig(prev => prev.map(a => a.id === act.id ? { ...a, asignadoAId: val } : a))
+                              }}
+                            >
+                              <option value="">— Sin asignar</option>
+                              {selectedDevs.map(u => (
+                                <option key={u.id} value={u.id}>{u.nombre}</option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="px-5 py-3 border-t flex items-center justify-between shrink-0" style={{ borderColor: 'var(--color-border)' }}>
+                  <Button variant="secondary" size="sm" onClick={() => setDevStep(1)}>← Volver</Button>
+                  <Button variant="primary" size="sm" loading={devSaving} onClick={confirmDevModal}>
+                    Cerrar y asignar
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       <ConfirmDialog

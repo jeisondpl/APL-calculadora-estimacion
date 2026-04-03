@@ -99,6 +99,8 @@ export interface IResponseActividad {
   orden:       number
   creadoPorId:      number | null
   creadoPorNombre:  string | null
+  asignadoAId:      number | null
+  asignadoANombre:  string | null
   tiemposEstimador: { userId: number; nombre: string; horas: number }[]
   dependencias:    string[]
   totalBaseMin:    number

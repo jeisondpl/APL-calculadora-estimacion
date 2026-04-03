@@ -59,7 +59,7 @@ async function fetchProyecto(id: number) {
 }
 
 type DatosExtraShape = { tiemposEstimador?: { userId: number; nombre: string; horas: number }[]; dependencias?: string[] }
-type CreadoPorInfo = { id: number | null; nombre: string | null; tiemposEstimador?: { userId: number; nombre: string; horas: number }[]; dependencias?: string[] }
+type CreadoPorInfo = { id: number | null; nombre: string | null; asignadoAId: number | null; asignadoANombre: string | null; tiemposEstimador?: { userId: number; nombre: string; horas: number }[]; dependencias?: string[] }
 function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>, creadoPorMap?: Map<number, CreadoPorInfo>) {
   return {
     id: p.id, requerimiento: p.requerimiento, nombreProyecto: p.nombreProyecto, objetivo: p.objetivo,
@@ -74,10 +74,12 @@ function formatProyecto(p: Awaited<ReturnType<typeof fetchProyecto>>, creadoPorM
       jornadas: a.jornadas ? Number(a.jornadas) : null,
       fechaInicio: a.fechaInicio?.toISOString() ?? null, fechaFin: a.fechaFin?.toISOString() ?? null,
       orden: a.orden, totalBaseMin: a.totalBaseMin, totalCopilotMin: a.totalCopilotMin, totalTmeMin: a.totalTmeMin,
-      creadoPorId:      creadoPorMap ? (creadoPorMap.get(a.id)?.id              ?? null) : null,
-      creadoPorNombre:  creadoPorMap ? (creadoPorMap.get(a.id)?.nombre          ?? null) : null,
-      tiemposEstimador: creadoPorMap ? (creadoPorMap.get(a.id)?.tiemposEstimador ?? [])  : [],
-      dependencias:     creadoPorMap ? (creadoPorMap.get(a.id)?.dependencias     ?? [])  : [],
+      creadoPorId:      creadoPorMap ? (creadoPorMap.get(a.id)?.id               ?? null) : null,
+      creadoPorNombre:  creadoPorMap ? (creadoPorMap.get(a.id)?.nombre           ?? null) : null,
+      asignadoAId:      creadoPorMap ? (creadoPorMap.get(a.id)?.asignadoAId      ?? null) : null,
+      asignadoANombre:  creadoPorMap ? (creadoPorMap.get(a.id)?.asignadoANombre  ?? null) : null,
+      tiemposEstimador: creadoPorMap ? (creadoPorMap.get(a.id)?.tiemposEstimador ?? [])   : [],
+      dependencias:     creadoPorMap ? (creadoPorMap.get(a.id)?.dependencias     ?? [])   : [],
       componentes: a.componentes.map(ac => ({
         id: ac.id, componenteId: ac.componenteId,
         nombreComponente: ac.componente.nombreComponente, grupoNombre: ac.componente.grupo.nombre,
@@ -103,10 +105,10 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
         Prisma.sql`SELECT estado, no_prefas, tiempo_sesion_horas FROM proyectos WHERE id = ${numId}`
       ).then(r => r[0]),
       actIds.length > 0
-        ? prisma.$queryRaw<{ id: number; creado_por_id: number | null; creado_por_nombre: string | null; datos_extra: unknown }[]>(
-            Prisma.sql`SELECT a.id, a.creado_por_id, u.nombre AS creado_por_nombre, a.datos_extra FROM actividades a LEFT JOIN usuarios u ON u.id = a.creado_por_id WHERE a.id IN (${Prisma.join(actIds)})`
+        ? prisma.$queryRaw<{ id: number; creado_por_id: number | null; creado_por_nombre: string | null; asignado_a_id: number | null; asignado_a_nombre: string | null; datos_extra: unknown }[]>(
+            Prisma.sql`SELECT a.id, a.creado_por_id, u.nombre AS creado_por_nombre, a.asignado_a_id, ua.nombre AS asignado_a_nombre, a.datos_extra FROM actividades a LEFT JOIN usuarios u ON u.id = a.creado_por_id LEFT JOIN usuarios ua ON ua.id = a.asignado_a_id WHERE a.id IN (${Prisma.join(actIds)})`
           )
-        : Promise.resolve([] as { id: number; creado_por_id: number | null; creado_por_nombre: string | null; datos_extra: unknown }[]),
+        : Promise.resolve([] as { id: number; creado_por_id: number | null; creado_por_nombre: string | null; asignado_a_id: number | null; asignado_a_nombre: string | null; datos_extra: unknown }[]),
     ])
     const creadoPorMap = new Map(creadoPorRows.map(r => {
       const extra = r.datos_extra as DatosExtraShape | null
@@ -115,6 +117,8 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
         {
           id:               r.creado_por_id ? Number(r.creado_por_id) : null,
           nombre:           r.creado_por_nombre ?? null,
+          asignadoAId:      r.asignado_a_id ? Number(r.asignado_a_id) : null,
+          asignadoANombre:  r.asignado_a_nombre ?? null,
           tiemposEstimador: extra?.tiemposEstimador ?? [],
           dependencias:     extra?.dependencias     ?? [],
         },
@@ -265,6 +269,8 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
       return [Number(r.id), {
         id:               r.creado_por_id ? Number(r.creado_por_id) : null,
         nombre:           r.creado_por_nombre ?? null,
+        asignadoAId:      null as number | null,
+        asignadoANombre:  null as string | null,
         tiemposEstimador: extra?.tiemposEstimador ?? [],
         dependencias:     extra?.dependencias     ?? [],
       }]

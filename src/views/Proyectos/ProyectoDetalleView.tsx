@@ -1,13 +1,16 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useProyectosController } from '@/modules/proyectos'
 import { PageHeader, Card, Button, Badge, SummaryCard } from '@/shared/components/ui'
 import { formatMinutes, downloadFile } from '@/shared/lib/utils'
 import { GanttChart } from './GanttChart'
+import { ProgresoTab } from './ProgresoTab'
 import type { IResponseProyecto, IResponseActividad } from '@/modules/proyectos'
+
+type Tab = 'detalle' | 'avance'
 
 // ─── Exportar a CSV ───────────────────────────────────────────────────────────
 
@@ -167,6 +170,9 @@ export function ProyectoDetalleView({ id }: { id: number }) {
   const { data: session } = useSession()
   const rol     = (session?.user as unknown as { rol?: string })?.rol ?? ''
   const canEdit = rol === 'SUPERUSUARIO' || rol === 'PRODUCT_OWNER'
+  const isDesarrollador = rol === 'DESARROLLADOR' || rol === 'QA'
+
+  const [tab, setTab] = useState<Tab>('detalle')
 
   useEffect(() => {
     _getById(id)
@@ -192,6 +198,11 @@ export function ProyectoDetalleView({ id }: { id: number }) {
 
   const horasBase = +(proyecto.totalBaseMin / 60).toFixed(2)
 
+  const TABS: { id: Tab; label: string }[] = [
+    { id: 'detalle', label: 'Detalle' },
+    { id: 'avance',  label: 'Avance' },
+  ]
+
   return (
     <div className='p-6 lg:p-8'>
       <PageHeader
@@ -199,13 +210,15 @@ export function ProyectoDetalleView({ id }: { id: number }) {
         subtitle={proyecto.requerimiento}
         action={
           <div className='flex gap-2'>
-            <Button
-              size='sm'
-              variant='ghost'
-              onClick={() => downloadFile(proyectoToCsv(proyecto), `${proyecto.requerimiento}_${proyecto.nombreProyecto.replace(/\s+/g, '_')}.csv`)}
-            >
-              ↓ Exportar CSV
-            </Button>
+            {tab === 'detalle' && (
+              <Button
+                size='sm'
+                variant='ghost'
+                onClick={() => downloadFile(proyectoToCsv(proyecto), `${proyecto.requerimiento}_${proyecto.nombreProyecto.replace(/\s+/g, '_')}.csv`)}
+              >
+                ↓ Exportar CSV
+              </Button>
+            )}
             {/* Planificar: solo SUPERUSUARIO y PRODUCT_OWNER */}
             {canEdit && (
               <Link href={`/proyectos/${id}/planificar`}>
@@ -214,7 +227,7 @@ export function ProyectoDetalleView({ id }: { id: number }) {
                 </Button>
               </Link>
             )}
-            {(canEdit || (proyecto as unknown as { estado?: string }).estado !== 'CERRADO') && (
+            {canEdit && (
               <Link href={`/proyectos/${id}/editar`}>
                 <Button size='sm' variant='secondary'>
                   ✎ Editar
@@ -230,125 +243,152 @@ export function ProyectoDetalleView({ id }: { id: number }) {
         }
       />
 
-      {/* Datos generales */}
-      <Card className='mb-6'>
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
-          {[
-            { label: 'Objetivo', value: proyecto.objetivo },
-            { label: 'Estimado por', value: proyecto.estimadoPor },
-            { label: 'Supervisado por', value: proyecto.supervisadoPor },
-            { label: 'Fecha estimación', value: proyecto.fechaEstimacion ? new Date(proyecto.fechaEstimacion).toLocaleDateString('es-ES') : null },
-          ]
-            .filter((f) => f.value)
-            .map((f) => (
-              <div key={f.label}>
-                <p className='text-xs mb-0.5' style={{ color: 'var(--color-text-soft)' }}>
-                  {f.label}
-                </p>
-                <p className='font-medium' style={{ color: 'var(--color-text)' }}>
-                  {f.value}
-                </p>
-              </div>
-            ))}
-        </div>
-      </Card>
-
-      {/* KPIs */}
-      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
-        <SummaryCard label='Horas estimadas' value={`${horasBase}h`} sublabel='Tiempo base total' />
-        <SummaryCard label='Tiempo base' value={formatMinutes(proyecto.totalBaseMin)} sublabel='Sin IA' />
-        <SummaryCard
-          label='Con Copilot'
-          value={formatMinutes(proyecto.totalCopilotMin)}
-          sublabel={`Ahorro ${formatMinutes(proyecto.totalBaseMin - proyecto.totalCopilotMin)}`}
-          accent='purple'
-        />
-        <SummaryCard label='TIGO' value={formatMinutes(proyecto.totalTmeMin)} sublabel={`${proyecto.actividades.length} actividades`} accent='orange' />
+      {/* NavTabs — visible para DESARROLLADOR/QA y también para todos */}
+      <div className='mb-6 border-b' style={{ borderColor: 'var(--color-border)' }}>
+        <nav className='flex gap-0' aria-label='Tabs'>
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className='px-5 py-2.5 text-sm font-medium transition-colors focus:outline-none'
+              style={{
+                borderBottom:  tab === t.id ? '2px solid var(--color-petroleum)' : '2px solid transparent',
+                color:         tab === t.id ? 'var(--color-petroleum)' : 'var(--color-text-soft)',
+                marginBottom:  '-1px',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Actividades base (sin componentes) */}
-      {(() => {
-        const base = proyecto.actividades.filter((a) => a.componentes.length === 0)
-        if (base.length === 0) return null
-        return (
-          <div className='mb-6'>
-            <p className='text-xs font-semibold uppercase tracking-wider mb-2' style={{ color: 'var(--color-text-soft)' }}>
-              Actividades base — {base.length} ítems
-            </p>
-            <div className='rounded-lg border overflow-hidden' style={{ borderColor: 'var(--color-border)' }}>
-              <table className='w-full text-sm'>
-                <thead>
-                  <tr style={{ backgroundColor: 'var(--color-petroleum)', color: '#fff' }}>
-                    <th className='px-3 py-2.5 text-left font-medium w-8'>#</th>
-                    <th className='px-3 py-2.5 text-left font-medium'>Actividad</th>
-                    <th className='px-3 py-2.5 text-left font-medium w-36 hidden md:table-cell'>Bloque</th>
-                    <th className='px-3 py-2.5 text-center font-medium w-20'>Jornadas</th>
-                    <th className='px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell'>Fecha inicio</th>
-                    <th className='px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell'>Fecha fin</th>
-                  </tr>
-                </thead>
-                <tbody className='divide-y' style={{ borderColor: 'var(--color-border)' }}>
-                  {base.map((act, idx) => (
-                    <tr key={act.id} className='hover:bg-[rgba(0,66,84,0.03)] transition-colors'>
-                      <td className='px-3 py-2.5 text-xs' style={{ color: 'var(--color-text-soft)' }}>
-                        {idx + 1}
-                      </td>
-                      <td className='px-3 py-2.5 font-medium' style={{ color: 'var(--color-text)' }}>
-                        {act.nombre}
-                      </td>
-                      <td className='px-3 py-2.5 hidden md:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
-                        {act.bloque || '—'}
-                      </td>
-                      <td className='px-3 py-2.5 text-center text-sm font-semibold' style={{ color: 'var(--color-petroleum)' }}>
-                        {act.jornadas ?? '—'}
-                      </td>
-                      <td className='px-3 py-2.5 hidden sm:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
-                        {act.fechaInicio ? new Date(act.fechaInicio).toLocaleDateString('es-ES') : '—'}
-                      </td>
-                      <td className='px-3 py-2.5 hidden sm:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
-                        {act.fechaFin ? new Date(act.fechaFin).toLocaleDateString('es-ES') : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* ── Tab: Detalle ─────────────────────────────────────────────────────── */}
+      {tab === 'detalle' && (
+        <>
+          {/* Datos generales */}
+          <Card className='mb-6'>
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
+              {[
+                { label: 'Objetivo', value: proyecto.objetivo },
+                { label: 'Estimado por', value: proyecto.estimadoPor },
+                { label: 'Supervisado por', value: proyecto.supervisadoPor },
+                { label: 'Fecha estimación', value: proyecto.fechaEstimacion ? new Date(proyecto.fechaEstimacion).toLocaleDateString('es-ES') : null },
+              ]
+                .filter((f) => f.value)
+                .map((f) => (
+                  <div key={f.label}>
+                    <p className='text-xs mb-0.5' style={{ color: 'var(--color-text-soft)' }}>
+                      {f.label}
+                    </p>
+                    <p className='font-medium' style={{ color: 'var(--color-text)' }}>
+                      {f.value}
+                    </p>
+                  </div>
+                ))}
             </div>
-          </div>
-        )
-      })()}
+          </Card>
 
-      {/* Actividades con componentes */}
-      {(() => {
-        const conComp = proyecto.actividades.filter((a) => a.componentes.length > 0)
-        if (conComp.length === 0) return null
-        return (
-          <div className='space-y-4'>
+          {/* KPIs */}
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
+            <SummaryCard label='Horas estimadas' value={`${horasBase}h`} sublabel='Tiempo base total' />
+            <SummaryCard label='Tiempo base' value={formatMinutes(proyecto.totalBaseMin)} sublabel='Sin IA' />
+            <SummaryCard
+              label='Con Copilot'
+              value={formatMinutes(proyecto.totalCopilotMin)}
+              sublabel={`Ahorro ${formatMinutes(proyecto.totalBaseMin - proyecto.totalCopilotMin)}`}
+              accent='purple'
+            />
+            <SummaryCard label='TIGO' value={formatMinutes(proyecto.totalTmeMin)} sublabel={`${proyecto.actividades.length} actividades`} accent='orange' />
+          </div>
+
+          {/* Actividades base (sin componentes) */}
+          {(() => {
+            const base = proyecto.actividades.filter((a) => a.componentes.length === 0)
+            if (base.length === 0) return null
+            return (
+              <div className='mb-6'>
+                <p className='text-xs font-semibold uppercase tracking-wider mb-2' style={{ color: 'var(--color-text-soft)' }}>
+                  Actividades base — {base.length} ítems
+                </p>
+                <div className='rounded-lg border overflow-hidden' style={{ borderColor: 'var(--color-border)' }}>
+                  <table className='w-full text-sm'>
+                    <thead>
+                      <tr style={{ backgroundColor: 'var(--color-petroleum)', color: '#fff' }}>
+                        <th className='px-3 py-2.5 text-left font-medium w-8'>#</th>
+                        <th className='px-3 py-2.5 text-left font-medium'>Actividad</th>
+                        <th className='px-3 py-2.5 text-left font-medium w-36 hidden md:table-cell'>Bloque</th>
+                        <th className='px-3 py-2.5 text-center font-medium w-20'>Jornadas</th>
+                        <th className='px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell'>Fecha inicio</th>
+                        <th className='px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell'>Fecha fin</th>
+                      </tr>
+                    </thead>
+                    <tbody className='divide-y' style={{ borderColor: 'var(--color-border)' }}>
+                      {base.map((act, idx) => (
+                        <tr key={act.id} className='hover:bg-[rgba(0,66,84,0.03)] transition-colors'>
+                          <td className='px-3 py-2.5 text-xs' style={{ color: 'var(--color-text-soft)' }}>
+                            {idx + 1}
+                          </td>
+                          <td className='px-3 py-2.5 font-medium' style={{ color: 'var(--color-text)' }}>
+                            {act.nombre}
+                          </td>
+                          <td className='px-3 py-2.5 hidden md:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
+                            {act.bloque || '—'}
+                          </td>
+                          <td className='px-3 py-2.5 text-center text-sm font-semibold' style={{ color: 'var(--color-petroleum)' }}>
+                            {act.jornadas ?? '—'}
+                          </td>
+                          <td className='px-3 py-2.5 hidden sm:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
+                            {act.fechaInicio ? new Date(act.fechaInicio).toLocaleDateString('es-ES') : '—'}
+                          </td>
+                          <td className='px-3 py-2.5 hidden sm:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
+                            {act.fechaFin ? new Date(act.fechaFin).toLocaleDateString('es-ES') : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Actividades con componentes */}
+          {(() => {
+            const conComp = proyecto.actividades.filter((a) => a.componentes.length > 0)
+            if (conComp.length === 0) return null
+            return (
+              <div className='space-y-4'>
+                <p className='text-xs font-semibold uppercase tracking-wider' style={{ color: 'var(--color-text-soft)' }}>
+                  Construcción — {conComp.length} actividades
+                </p>
+                {conComp.map((act) => (
+                  <ActividadDetalle key={act.id} act={act} />
+                ))}
+              </div>
+            )
+          })()}
+
+          <div className='space-y-4 my-6'>
             <p className='text-xs font-semibold uppercase tracking-wider' style={{ color: 'var(--color-text-soft)' }}>
-              Construcción — {conComp.length} actividades
+              Diagrama de Gantt
             </p>
-            {conComp.map((act) => (
-              <ActividadDetalle key={act.id} act={act} />
-            ))}
           </div>
-        )
-      })()}
+          <GanttChart
+            filas={proyecto.actividades.map((a) => ({
+              id: a.id,
+              nombre: a.nombre,
+              bloque: a.bloque,
+              jornadas: a.jornadas,
+              fechaInicio: a.fechaInicio ? a.fechaInicio.slice(0, 10) : '',
+              fechaFin: a.fechaFin ? a.fechaFin.slice(0, 10) : '',
+            }))}
+          />
+        </>
+      )}
 
-      <div className='space-y-4 my-6'>
-        <p className='text-xs font-semibold uppercase tracking-wider' style={{ color: 'var(--color-text-soft)' }}>
-          Diagrama de Gantt
-        </p>
-      </div>
-      {/* Gantt */}
-      <GanttChart
-        filas={proyecto.actividades.map((a) => ({
-          id: a.id,
-          nombre: a.nombre,
-          bloque: a.bloque,
-          jornadas: a.jornadas,
-          fechaInicio: a.fechaInicio ? a.fechaInicio.slice(0, 10) : '',
-          fechaFin: a.fechaFin ? a.fechaFin.slice(0, 10) : '',
-        }))}
-      />
+      {/* ── Tab: Avance ──────────────────────────────────────────────────────── */}
+      {tab === 'avance' && <ProgresoTab proyecto={proyecto} />}
     </div>
   )
 }
