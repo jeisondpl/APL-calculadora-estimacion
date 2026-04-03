@@ -150,36 +150,29 @@ DATOS ACTUALES DEL PROYECTO:
 ${ctx}
 
 FORMATO DE NOTA JIRA (úsalo cuando el usuario pida generar la nota o el reporte):
-*SITUACIÓN ACTUAL*
-[Describe el estado actual del proyecto en 1-2 oraciones]
+**SITUACIÓN ACTUAL:** [Describe el estado actual del proyecto en 1-2 oraciones]
 
-*PORCENTAJE DE AVANCE GENERAL*
-[XX%]
+**PORCENTAJE DE AVANCE GENERAL:** [XX%]
 
-*Porcentaje de Desarrollo*: [XX%]
-*Porcentaje de Documentación*: [XX%]
-*Porcentaje de Pruebas*: [XX%]
+**Porcentaje de Desarrollo:** [XX%]
 
-*SIGUIENTE PASO*
-[Describe la próxima acción concreta]
+**Porcentaje de Documentación:** [XX%]
 
-*FECHA SIGUIENTE PASO*
-[DD/MM/YYYY]
+**Porcentaje de Pruebas:** [XX%]
 
-*PROBLEMAS DETECTADOS*
-[Lista de problemas o "Sin problemas detectados"]
+**SIGUIENTE PASO:** [Describe la próxima acción concreta]
 
-*ÁREA/PERSONA DESBLOQUEO*
-[Área o persona responsable, o "N/A"]
+**FECHA SIGUIENTE PASO:** [DD/MM/YYYY]
 
-*EN CRONOGRAMA*
-[Sí / No / En riesgo]
+**PROBLEMAS DETECTADO:** [Lista de problemas o "Sin problemas detectados"]
 
-*FECHA INICIO CONSTRUCCIÓN/PRUEBAS*
-[DD/MM/YYYY]
+**AREA/PERSONA DESBLOQUEO:** [Área o persona responsable, o "N/A"]
 
-*FECHA ENTREGA TIGO*
-[DD/MM/YYYY o "No definida"]`
+**EN CRONOGRAMA:** [Sí / No / En riesgo]
+
+**FECHA INICIO CONSTRUCCIÓN/PRUEBAS:** [DD/MM/YYYY]
+
+**FECHA ENTREGA TIGO:** [DD/MM/YYYY o "No definida"]`
 }
 
 // ─── Grafo LangGraph mínimo ───────────────────────────────────────────────────
