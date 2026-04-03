@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import type { IResponseProyecto } from '@/modules/proyectos'
+import { ChatBox } from './ChatBox'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -273,6 +274,14 @@ export function ProgresoTab({ proyecto }: { proyecto: IResponseProyecto }) {
           Detalle por actividad
         </p>
         <TablaActividades proyecto={proyecto} />
+      </div>
+
+      {/* Chatbox asistente operacional */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-soft)' }}>
+          Asistente de control operacional
+        </p>
+        <ChatBox proyectoId={proyecto.id} />
       </div>
     </div>
   )
