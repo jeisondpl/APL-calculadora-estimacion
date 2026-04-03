@@ -10,5 +10,5 @@ export type {
   IResponseListProyectos,
 } from './domain/entities/Proyectos.entities'
 export { useProyectosController } from './presentation/hooks/useProyectosController'
-export { useWizardStore }         from './presentation/stores/useWizardStore'
-export type { DatosGenerales }    from './presentation/stores/useWizardStore'
+export { useWizardStore, DEFAULT_ACTIVITY_NAMES } from './presentation/stores/useWizardStore'
+export type { DatosGenerales }                    from './presentation/stores/useWizardStore'

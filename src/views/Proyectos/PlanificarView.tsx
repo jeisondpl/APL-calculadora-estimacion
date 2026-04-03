@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useProyectosController } from '@/modules/proyectos'
+import { useProyectosController, DEFAULT_ACTIVITY_NAMES } from '@/modules/proyectos'
 import { apiClient } from '@/shared/lib/axios'
 import { PageHeader, Button, Card } from '@/shared/components/ui'
 import { GanttChart } from './GanttChart'
@@ -35,7 +35,7 @@ export function PlanificarView({ id }: { id: number }) {
         fechaInicio:      a.fechaInicio ? a.fechaInicio.slice(0, 10) : '',
         fechaFin:         a.fechaFin    ? a.fechaFin.slice(0, 10)    : '',
         creadoPorNombre:  (a as unknown as { creadoPorNombre?: string | null }).creadoPorNombre ?? null,
-        isDefault:        (a as unknown as { isDefault?: boolean }).isDefault ?? false,
+        isDefault:        DEFAULT_ACTIVITY_NAMES.has(a.nombre),
       }))
     )
   }, [proyecto])
@@ -96,7 +96,7 @@ export function PlanificarView({ id }: { id: number }) {
                 <th className="px-3 py-2.5 text-left font-medium w-8">#</th>
                 <th className="px-3 py-2.5 text-left font-medium">Actividad</th>
                 <th className="px-3 py-2.5 text-left font-medium w-36 hidden md:table-cell">Bloque</th>
-                <th className="px-3 py-2.5 text-center font-medium w-24 hidden sm:table-cell">Jornadas</th>
+                <th className="px-3 py-2.5 text-center font-medium w-32 hidden sm:table-cell">Jornadas</th>
                 <th className="px-3 py-2.5 text-left font-medium w-36 hidden lg:table-cell">Estimador</th>
                 <th className="px-3 py-2.5 text-left font-medium w-40">Fecha inicio</th>
                 <th className="px-3 py-2.5 text-left font-medium w-40">Fecha fin</th>
@@ -143,20 +143,34 @@ export function PlanificarView({ id }: { id: number }) {
                   <td className="px-3 py-2 pr-2">
                     <input
                       type="date"
+                      disabled={!fila.jornadas || fila.jornadas <= 0}
                       value={fila.fechaInicio}
                       onChange={e => set(idx, 'fechaInicio', e.target.value)}
                       className="w-full px-2 py-1 text-xs rounded border outline-none"
-                      style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                      style={{
+                        borderColor:     'var(--color-border)',
+                        backgroundColor: (!fila.jornadas || fila.jornadas <= 0) ? 'rgba(0,0,0,0.03)' : 'var(--color-surface)',
+                        color:           'var(--color-text)',
+                        opacity:         (!fila.jornadas || fila.jornadas <= 0) ? 0.4 : 1,
+                        cursor:          (!fila.jornadas || fila.jornadas <= 0) ? 'not-allowed' : 'text',
+                      }}
                     />
                   </td>
                   <td className="px-3 py-2 pr-3">
                     <input
                       type="date"
+                      disabled={!fila.jornadas || fila.jornadas <= 0}
                       value={fila.fechaFin}
                       onChange={e => set(idx, 'fechaFin', e.target.value)}
                       min={fila.fechaInicio || undefined}
                       className="w-full px-2 py-1 text-xs rounded border outline-none"
-                      style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                      style={{
+                        borderColor:     'var(--color-border)',
+                        backgroundColor: (!fila.jornadas || fila.jornadas <= 0) ? 'rgba(0,0,0,0.03)' : 'var(--color-surface)',
+                        color:           'var(--color-text)',
+                        opacity:         (!fila.jornadas || fila.jornadas <= 0) ? 0.4 : 1,
+                        cursor:          (!fila.jornadas || fila.jornadas <= 0) ? 'not-allowed' : 'text',
+                      }}
                     />
                   </td>
                 </tr>
