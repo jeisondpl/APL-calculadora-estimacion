@@ -1,12 +1,22 @@
 'use client'
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import {
   RadialBarChart,
   RadialBar,
   PolarAngleAxis,
   ResponsiveContainer,
   Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts'
 import type { IResponseProyecto } from '@/modules/proyectos'
 import { ChatBox } from './ChatBox'
@@ -34,6 +44,210 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { name
     >
       <p className="font-semibold">{payload[0].name}</p>
       <p>{payload[0].value}%</p>
+    </div>
+  )
+}
+
+// ─── Tooltip desarrolladores ─────────────────────────────────────────────────
+
+type DevTooltipPayload = { name: string; value: number; fill: string }
+
+function DevTooltip({ active, payload, label }: { active?: boolean; payload?: DevTooltipPayload[]; label?: string }) {
+  if (!active || !payload?.length) return null
+  const avance = Math.round(
+    (payload.find(p => p.name === 'Completadas')?.value ?? 0) +
+    (payload.find(p => p.name === 'En curso')?.value ?? 0) / 2
+  )
+  return (
+    <div
+      className="rounded-lg border px-3 py-2 text-xs shadow-md min-w-[140px]"
+      style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+    >
+      <p className="font-semibold mb-1.5">{label}</p>
+      {payload.map(p => p.value > 0 && (
+        <div key={p.name} className="flex items-center gap-2 mb-0.5">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.fill }} />
+          <span style={{ color: 'var(--color-text-soft)' }}>{p.name}:</span>
+          <span className="font-medium ml-auto">{p.value}%</span>
+        </div>
+      ))}
+      <div className="mt-1.5 pt-1.5 border-t" style={{ borderColor: 'var(--color-border)' }}>
+        <span style={{ color: 'var(--color-text-soft)' }}>Avance:</span>
+        <span className="font-bold ml-1" style={{ color: 'var(--color-petroleum)' }}>{avance}%</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Gráfica por desarrollador ────────────────────────────────────────────────
+
+type DevStat = {
+  nombre: string
+  completadas: number
+  enCurso: number
+  planificadas: number
+  pendientes: number
+  avance: number
+  total: number
+}
+
+function GraficaDesarrolladores({ data }: { data: DevStat[] }) {
+  if (data.length === 0) return null
+
+  const chartHeight = Math.max(140, data.length * 54)
+
+  return (
+    <div
+      className="rounded-lg border p-5"
+      style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
+    >
+      <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-text)' }}>
+        Avance por desarrollador
+      </p>
+      <p className="text-xs mb-4" style={{ color: 'var(--color-text-soft)' }}>
+        Distribución de actividades por estado y persona asignada
+      </p>
+
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart
+          layout="vertical"
+          data={data}
+          margin={{ top: 0, right: 48, left: 0, bottom: 0 }}
+          barCategoryGap="28%"
+        >
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+          <XAxis
+            type="number"
+            domain={[0, 100]}
+            tickFormatter={v => `${v}%`}
+            tick={{ fontSize: 10, fill: 'var(--color-text-soft)' } as React.CSSProperties}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="nombre"
+            width={112}
+            tick={{ fontSize: 11, fill: 'var(--color-text)' } as React.CSSProperties}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip content={<DevTooltip />} cursor={{ fill: 'rgba(0,66,84,0.04)' }} />
+          <Legend
+            iconType="circle"
+            iconSize={8}
+            wrapperStyle={{ fontSize: 11, paddingTop: 12, color: 'var(--color-text-soft)' }}
+          />
+          <Bar dataKey="completadas" name="Completadas" stackId="s" fill="#10B981" isAnimationActive />
+          <Bar dataKey="enCurso"     name="En curso"    stackId="s" fill="#D97706" isAnimationActive />
+          <Bar dataKey="planificadas" name="Planificadas" stackId="s" fill="#2563EB" isAnimationActive />
+          <Bar dataKey="pendientes"  name="Pendientes"  stackId="s" fill="#D1D5DB" isAnimationActive radius={[0, 3, 3, 0]}>
+            <LabelList
+              dataKey="avance"
+              position="right"
+              formatter={(v: number) => v > 0 ? `${v}%` : ''}
+              style={{ fontSize: 10, fill: 'var(--color-text-soft)', fontWeight: 600 } as React.CSSProperties}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// ─── Donut individual por desarrollador ──────────────────────────────────────
+
+const STATUS_CONFIG = [
+  { key: 'completadas',  label: 'Completadas',  color: '#10B981' },
+  { key: 'enCurso',      label: 'En curso',     color: '#D97706' },
+  { key: 'planificadas', label: 'Planificadas', color: '#2563EB' },
+  { key: 'pendientes',   label: 'Pendientes',   color: '#D1D5DB' },
+] as const
+
+function GraficaCircularDev({ dev }: { dev: DevStat }) {
+  const pieData = STATUS_CONFIG
+    .map(s => ({ name: s.label, value: dev[s.key], fill: s.color }))
+    .filter(d => d.value > 0)
+
+  const hasData = pieData.length > 0
+
+  return (
+    <div
+      className="rounded-lg border p-4 flex flex-col items-center"
+      style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
+    >
+      {/* Nombre */}
+      <p
+        className="text-xs font-semibold text-center leading-tight mb-0.5 line-clamp-2 w-full"
+        style={{ color: 'var(--color-text)' }}
+        title={dev.nombre}
+      >
+        {dev.nombre}
+      </p>
+      <p className="text-[10px] mb-3" style={{ color: 'var(--color-text-soft)' }}>
+        {dev.total} {dev.total === 1 ? 'actividad' : 'actividades'}
+      </p>
+
+      {/* Donut */}
+      <div className="relative w-28 h-28">
+        {hasData && (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius="54%"
+                outerRadius="82%"
+                dataKey="value"
+                startAngle={90}
+                endAngle={-270}
+                strokeWidth={0}
+                isAnimationActive
+              >
+                {pieData.map((entry, i) => (
+                  <Cell key={i} fill={entry.fill} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <p className="text-xl font-bold leading-none" style={{ color: 'var(--color-petroleum)' }}>
+            {dev.avance}%
+          </p>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-text-soft)' }}>avance</p>
+        </div>
+      </div>
+
+      {/* Leyenda */}
+      <div className="w-full mt-3 space-y-1.5">
+        {STATUS_CONFIG.filter(s => dev[s.key] > 0).map(s => (
+          <div key={s.key} className="flex items-center gap-1.5 text-[11px]">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+            <span style={{ color: 'var(--color-text-soft)' }}>{s.label}:</span>
+            <span className="font-semibold ml-auto" style={{ color: 'var(--color-text)' }}>{dev[s.key]}%</span>
+          </div>
+        ))}
+        <div
+          className="pt-1.5 mt-0.5 border-t flex items-center text-[11px]"
+          style={{ borderColor: 'var(--color-border)' }}
+        >
+          <span style={{ color: 'var(--color-text-soft)' }}>Avance:</span>
+          <span className="font-bold ml-auto" style={{ color: 'var(--color-petroleum)' }}>{dev.avance}%</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function GraficasCircularesDesarrolladores({ data }: { data: DevStat[] }) {
+  if (data.length === 0) return null
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {data.map(dev => (
+        <GraficaCircularDev key={dev.nombre} dev={dev} />
+      ))}
     </div>
   )
 }
@@ -170,6 +384,43 @@ export function ProgresoTab({ proyecto }: { proyecto: IResponseProyecto }) {
 
   const avanceTotal = stats.pctCompletadas + Math.round(stats.pctEnCurso / 2)
 
+  const devStats = useMemo<DevStat[]>(() => {
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+
+    const map = new Map<string, { completadas: number; enCurso: number; planificadas: number; pendientes: number }>()
+
+    for (const a of actividades) {
+      const dev = a.asignadoANombre ?? 'Sin asignar'
+      if (!map.has(dev)) map.set(dev, { completadas: 0, enCurso: 0, planificadas: 0, pendientes: 0 })
+      const entry = map.get(dev)!
+
+      if (!a.fechaInicio || !a.fechaFin) {
+        entry.pendientes++
+        continue
+      }
+      const inicio = new Date(a.fechaInicio)
+      const fin    = new Date(a.fechaFin)
+      if      (hoy > fin)         entry.completadas++
+      else if (hoy >= inicio)     entry.enCurso++
+      else                        entry.planificadas++
+    }
+
+    return Array.from(map.entries()).map(([nombre, v]) => {
+      const tot = v.completadas + v.enCurso + v.planificadas + v.pendientes
+      const pct = (n: number) => tot > 0 ? Math.round((n / tot) * 100) : 0
+      return {
+        nombre,
+        completadas:  pct(v.completadas),
+        enCurso:      pct(v.enCurso),
+        planificadas: pct(v.planificadas),
+        pendientes:   pct(v.pendientes),
+        avance:       pct(v.completadas) + Math.round(pct(v.enCurso) / 2),
+        total: tot,
+      }
+    }).sort((a, b) => b.avance - a.avance)
+  }, [actividades])
+
   const chartData = [
     { name: 'Completadas', value: stats.pctCompletadas, fill: '#10B981' },
     { name: 'En curso',    value: stats.pctEnCurso,     fill: '#D97706' },
@@ -283,6 +534,26 @@ export function ProgresoTab({ proyecto }: { proyecto: IResponseProyecto }) {
           ))}
         </div>
       </div>
+
+      {/* Gráfica barras por desarrollador */}
+      {devStats.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-soft)' }}>
+            Avance por desarrollador
+          </p>
+          <GraficaDesarrolladores data={devStats} />
+        </div>
+      )}
+
+      {/* Donuts por desarrollador */}
+      {devStats.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-soft)' }}>
+            Detalle por desarrollador
+          </p>
+          <GraficasCircularesDesarrolladores data={devStats} />
+        </div>
+      )}
 
       {/* Tabla detalle */}
       <div>
