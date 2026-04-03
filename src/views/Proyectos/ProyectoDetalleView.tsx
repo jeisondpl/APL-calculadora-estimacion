@@ -174,9 +174,16 @@ export function ProyectoDetalleView({ id }: { id: number }) {
 
   const [tab, setTab] = useState<Tab>('detalle')
 
+  useEffect(() => { _getById(id) }, [_getById, id])
+
+  // Si la planificación deja de estar completa, volver a Detalle
   useEffect(() => {
-    _getById(id)
-  }, [_getById, id])
+    if (tab === 'avance' && proyecto) {
+      const completa = proyecto.actividades.length > 0 &&
+        proyecto.actividades.every(a => a.fechaInicio && a.fechaFin)
+      if (!completa) setTab('detalle')
+    }
+  }, [proyecto, tab])
 
   if (loading && !proyecto) {
     return (
@@ -198,9 +205,13 @@ export function ProyectoDetalleView({ id }: { id: number }) {
 
   const horasBase = +(proyecto.totalBaseMin / 60).toFixed(2)
 
+  // La pestaña Avance solo está disponible cuando toda actividad tiene fechas
+  const planificacionCompleta = proyecto.actividades.length > 0 &&
+    proyecto.actividades.every(a => a.fechaInicio && a.fechaFin)
+
   const TABS: { id: Tab; label: string }[] = [
     { id: 'detalle', label: 'Detalle' },
-    { id: 'avance',  label: 'Avance' },
+    ...(planificacionCompleta ? [{ id: 'avance' as Tab, label: 'Avance' }] : []),
   ]
 
   return (

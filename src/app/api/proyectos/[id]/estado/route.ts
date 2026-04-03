@@ -25,6 +25,24 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
   try {
     const numId = parseInt(id)
 
+    // Validar planificación completa antes de cerrar
+    if (estado === 'CERRADO') {
+      // Toda actividad debe tener fecha_inicio Y fecha_fin para poder cerrar
+      const sinPlanificar = await prisma.$queryRaw<{ id: number; nombre: string }[]>(
+        Prisma.sql`
+          SELECT id, nombre FROM actividades
+          WHERE proyecto_id = ${numId}
+            AND (fecha_inicio IS NULL OR fecha_fin IS NULL)
+        `
+      )
+      if (sinPlanificar.length > 0) {
+        return NextResponse.json(
+          errorResponse(`Planificación incompleta: ${sinPlanificar.length} actividad(es) sin fechas asignadas`, 422),
+          { status: 422 }
+        )
+      }
+    }
+
     await prisma.$executeRaw`UPDATE proyectos SET estado = ${estado}, updated_at = now() WHERE id = ${numId}`
 
     // Si se cierran y vienen desarrolladores, agregarlos como estimadores (visibilidad)

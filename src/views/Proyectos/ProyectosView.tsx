@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import axios from 'axios'
+import axios, { isAxiosError } from 'axios'
 import { useProyectosController } from '@/modules/proyectos'
 import { PageHeader, Card, Button, ConfirmDialog } from '@/shared/components/ui'
 import { formatMinutes } from '@/shared/lib/utils'
@@ -21,10 +21,12 @@ export function ProyectosView() {
   const [deleteTarget, setDeleteTarget] = useState<IResponseProyectoSummary | null>(null)
   const [deleting,     setDeleting]     = useState(false)
   const [togglingId,   setTogglingId]   = useState<number | null>(null)
+  const [toggleErr,    setToggleErr]    = useState<string | null>(null)
 
   // Modal asignar desarrolladores al cerrar
   interface UsuarioOpt { id: number; nombre: string; rol: { nombre: string } }
-  interface ActAsig   { id: number; nombre: string; bloque: string | null; jornadas: number | null; asignadoAId: number | null }
+  interface ActAsig   { id: number; nombre: string; bloque: string | null; jornadas: number | null; asignadoAId: number | null; fechaInicio?: string | null; fechaFin?: string | null }
+  interface ValidarCierreResp { puedesCerrar: boolean; sinPlanificar: ActAsig[] }
 
   const [devModal,    setDevModal]    = useState<IResponseProyectoSummary | null>(null)
   const [devStep,     setDevStep]     = useState<1 | 2>(1)
@@ -32,7 +34,14 @@ export function ProyectosView() {
   const [devSelected, setDevSelected] = useState<Set<number>>(new Set())
   const [devQuery,    setDevQuery]    = useState('')
   const [devSaving,   setDevSaving]   = useState(false)
+  const [devSaveErr,  setDevSaveErr]  = useState<string | null>(null)
   const [actAsig,     setActAsig]     = useState<ActAsig[]>([])
+
+  // Modal de alerta: planificación incompleta
+  const [planAlert, setPlanAlert] = useState<{
+    proyecto:      IResponseProyectoSummary
+    sinPlanificar: ActAsig[]
+  } | null>(null)
 
   const filteredDevPool = devPool.filter(u =>
     !devQuery.trim() || u.nombre.toLowerCase().includes(devQuery.toLowerCase())
@@ -41,10 +50,25 @@ export function ProyectosView() {
   const selectedDevs = devPool.filter(u => devSelected.has(u.id))
 
   const openDevModal = async (item: IResponseProyectoSummary) => {
+    // 1. Validar planificación completa mediante endpoint dedicado
+    const validarRes = await axios.get<{ error: boolean; response: ValidarCierreResp }>(
+      `/api/proyectos/${item.id}/validar-cierre`
+    )
+    const validar = validarRes.data.response
+
+    if (!validar.puedesCerrar) {
+      setPlanAlert({ proyecto: item, sinPlanificar: validar.sinPlanificar })
+      return
+    }
+
+    // 2. Si pasa la validación, cargar usuarios y actividades en paralelo
     const [usersRes, proyRes] = await Promise.all([
       axios.get<UsuarioOpt[]>('/api/usuarios/por-rol?roles=DESARROLLADOR,QA'),
-      axios.get<{ data: { actividades: ActAsig[] } }>(`/api/proyectos/${item.id}`),
+      axios.get<{ error: boolean; response: { actividades: ActAsig[] } }>(`/api/proyectos/${item.id}`),
     ])
+
+    const actividades: ActAsig[] = proyRes.data.response?.actividades ?? []
+
     const sorted = [...usersRes.data].sort((a, b) =>
       a.rol.nombre.localeCompare(b.rol.nombre) || a.nombre.localeCompare(b.nombre)
     )
@@ -53,8 +77,9 @@ export function ProyectosView() {
     setDevSelected(existingIds)
     setDevQuery('')
     setDevStep(1)
+    setDevSaveErr(null)
     setActAsig(
-      (proyRes.data.data.actividades ?? []).map((a: ActAsig) => ({
+      actividades.map(a => ({
         id:          a.id,
         nombre:      a.nombre,
         bloque:      a.bloque,
@@ -68,14 +93,21 @@ export function ProyectosView() {
   const confirmDevModal = async () => {
     if (!devModal) return
     setDevSaving(true)
-    await axios.patch(`/api/proyectos/${devModal.id}/estado`, {
-      estado:           'CERRADO',
-      desarrolladorIds: Array.from(devSelected),
-      asignaciones:     actAsig.map(a => ({ actividadId: a.id, usuarioId: a.asignadoAId })),
-    })
-    await _list(page, LIMIT)
-    setDevSaving(false)
-    setDevModal(null)
+    setDevSaveErr(null)
+    try {
+      await axios.patch(`/api/proyectos/${devModal.id}/estado`, {
+        estado:           'CERRADO',
+        desarrolladorIds: Array.from(devSelected),
+        asignaciones:     actAsig.map(a => ({ actividadId: a.id, usuarioId: a.asignadoAId })),
+      })
+      await _list(page, LIMIT)
+      setDevModal(null)
+    } catch (err: unknown) {
+      const apiMsg = isAxiosError(err) ? (err.response?.data as { msg?: string })?.msg : undefined
+      setDevSaveErr(apiMsg ?? (err instanceof Error ? err.message : 'No se pudo cerrar el proyecto'))
+    } finally {
+      setDevSaving(false)
+    }
   }
 
   // Asignar todo un bloque a un desarrollador
@@ -112,16 +144,28 @@ export function ProyectosView() {
   }, [paginado?.items, search, filterEstado])
 
   const handleToggleEstado = async (item: IResponseProyectoSummary) => {
+    setToggleErr(null)
     if (item.estado === 'ABIERTO') {
-      // Cerrar → mostrar modal de asignación de desarrolladores
-      await openDevModal(item)
+      // Cerrar → validar planificación y mostrar modal
+      setTogglingId(item.id)
+      try {
+        await openDevModal(item)
+      } catch (err: unknown) {
+        const apiMsg = isAxiosError(err) ? (err.response?.data as { msg?: string })?.msg : undefined
+        setToggleErr(apiMsg ?? (err instanceof Error ? err.message : 'Error al validar el proyecto'))
+      } finally {
+        setTogglingId(null)
+      }
       return
     }
     // Reabrir → directo sin modal
     setTogglingId(item.id)
-    await axios.patch(`/api/proyectos/${item.id}/estado`, { estado: 'ABIERTO' })
-    await _list(page, LIMIT)
-    setTogglingId(null)
+    try {
+      await axios.patch(`/api/proyectos/${item.id}/estado`, { estado: 'ABIERTO' })
+      await _list(page, LIMIT)
+    } finally {
+      setTogglingId(null)
+    }
   }
 
   return (
@@ -155,6 +199,14 @@ export function ProyectosView() {
           </div>
         }
       />
+
+      {toggleErr && (
+        <p className="text-sm px-3 py-2 rounded-lg mb-4 flex items-center justify-between"
+          style={{ backgroundColor: 'rgba(192,57,43,0.08)', color: '#C0392B' }}>
+          <span>{toggleErr}</span>
+          <button onClick={() => setToggleErr(null)} className="ml-3 opacity-60 hover:opacity-100 text-base leading-none">✕</button>
+        </p>
+      )}
 
       {error && (
         <p className="text-sm px-3 py-2 rounded-lg mb-4"
@@ -360,6 +412,93 @@ export function ProyectosView() {
         </>
       )}
 
+      {/* Modal: planificación incompleta */}
+      {planAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onMouseDown={e => { if (e.target === e.currentTarget) setPlanAlert(null) }}>
+          <div className="w-full max-w-lg rounded-xl shadow-2xl flex flex-col"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', maxHeight: '80vh' }}>
+
+            {/* Cabecera — rojo/warning */}
+            <div className="px-5 py-4 rounded-t-xl flex items-start gap-3 shrink-0"
+              style={{ backgroundColor: 'rgba(192,57,43,0.08)', borderBottom: '1px solid rgba(192,57,43,0.15)' }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-lg"
+                style={{ backgroundColor: 'rgba(192,57,43,0.12)', color: '#C0392B' }}>
+                ⚠
+              </div>
+              <div className="flex-1">
+                <h2 className="text-sm font-semibold" style={{ color: '#C0392B' }}>
+                  No se puede cerrar el proyecto
+                </h2>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-soft)' }}>
+                  La planificación está incompleta. {planAlert.sinPlanificar.length} actividad{planAlert.sinPlanificar.length !== 1 ? 'es' : ''} sin fechas de inicio y fin.
+                </p>
+              </div>
+              <button onClick={() => setPlanAlert(null)} className="text-lg leading-none opacity-50 hover:opacity-100"
+                style={{ color: 'var(--color-text)' }}>✕</button>
+            </div>
+
+            {/* Lista de actividades incompletas */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-soft)' }}>
+                Actividades sin planificar
+              </p>
+              <div className="space-y-2">
+                {planAlert.sinPlanificar.map((a, idx) => (
+                  <div key={a.id}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg border"
+                    style={{ borderColor: 'rgba(192,57,43,0.2)', backgroundColor: 'rgba(192,57,43,0.04)' }}>
+                    <span className="text-xs font-mono w-5 shrink-0 text-center"
+                      style={{ color: 'var(--color-text-soft)' }}>{idx + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{a.nombre}</p>
+                      <div className="flex gap-3 mt-0.5">
+                        {a.bloque && (
+                          <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{a.bloque}</span>
+                        )}
+                        {a.jornadas != null && (
+                          <span className="text-xs font-medium" style={{ color: 'var(--color-petroleum)' }}>
+                            {a.jornadas}j
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex gap-1.5 text-xs">
+                      <span className="px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: a.fechaInicio ? 'rgba(16,185,129,0.1)' : 'rgba(192,57,43,0.1)', color: a.fechaInicio ? '#10b981' : '#C0392B' }}>
+                        {a.fechaInicio ? 'Inicio ✓' : 'Sin inicio'}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: a.fechaFin ? 'rgba(16,185,129,0.1)' : 'rgba(192,57,43,0.1)', color: a.fechaFin ? '#10b981' : '#C0392B' }}>
+                        {a.fechaFin ? 'Fin ✓' : 'Sin fin'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t flex items-center justify-between shrink-0"
+              style={{ borderColor: 'var(--color-border)' }}>
+              <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                Completa las fechas en la vista de Planificación
+              </p>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" onClick={() => setPlanAlert(null)}>
+                  Cancelar
+                </Button>
+                <Link href={`/proyectos/${planAlert.proyecto.id}/planificar`}>
+                  <Button variant="primary" size="sm" onClick={() => setPlanAlert(null)}>
+                    Ir a Planificar →
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal asignar desarrolladores — 2 pasos */}
       {devModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
@@ -534,8 +673,19 @@ export function ProyectosView() {
                 </div>
 
                 <div className="px-5 py-3 border-t flex items-center justify-between shrink-0" style={{ borderColor: 'var(--color-border)' }}>
-                  <Button variant="secondary" size="sm" onClick={() => setDevStep(1)}>← Volver</Button>
-                  <Button variant="primary" size="sm" loading={devSaving} onClick={confirmDevModal}>
+                  <div className="flex items-center gap-3">
+                    <Button variant="secondary" size="sm" onClick={() => setDevStep(1)}>← Volver</Button>
+                    {devSaveErr && (
+                      <p className="text-xs" style={{ color: '#C0392B' }}>{devSaveErr}</p>
+                    )}
+                  </div>
+                  <Button variant="primary" size="sm" loading={devSaving}
+                    onClick={() => confirmDevModal().catch((err: unknown) => {
+                      const msg = isAxiosError(err)
+                        ? (err.response?.data as { msg?: string })?.msg ?? err.message
+                        : (err instanceof Error ? err.message : 'No se pudo cerrar el proyecto')
+                      setDevSaveErr(msg)
+                    })}>
                     Cerrar y asignar
                   </Button>
                 </div>
