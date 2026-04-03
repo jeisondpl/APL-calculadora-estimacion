@@ -5,6 +5,7 @@ import { errorResponse } from '@/shared/lib/HttpResponse'
 import { requireRole } from '@/shared/lib/requireRole'
 import OpenAI from 'openai'
 import type { ChatCompletionMessageParam, ChatCompletionTool } from 'openai/resources'
+import { embed, cosineSimilarity } from '@/shared/lib/embeddings'
 
 type RouteCtx = { params: Promise<{ id: string }> }
 type MsgInput = { role: 'user' | 'assistant'; content: string }
@@ -79,9 +80,55 @@ const TOOLS: ChatCompletionTool[] = [
       parameters: { type: 'object', properties: {}, required: [] },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'consultar_estimacion',
+      description: 'Busca en el documento de estimación (MAU) adjunto al proyecto para recuperar el contexto relevante sobre una actividad, frente o tema específico. Usar cuando el usuario pregunte sobre el alcance estimado, qué decía la estimación, alineación entre ejecución y estimación, o para enriquecer la nota Jira con contexto del documento.',
+      parameters: {
+        type: 'object',
+        properties: {
+          consulta: {
+            type: 'string',
+            description: 'Texto de búsqueda semántica sobre el documento. Puede ser el nombre de una actividad, bloque, frente funcional o una pregunta.',
+          },
+        },
+        required: ['consulta'],
+      },
+    },
+  },
 ]
 
 // ─── Implementación de tools ──────────────────────────────────────────────────
+
+// Busca los top-3 chunks del MAU más relevantes para la actividad/consulta dada.
+// Retorna null si no hay documento o embeddings.
+async function buscarContextoEstimacion(proyectoId: number, consulta: string): Promise<string | null> {
+  if (!consulta.trim()) return null
+  try {
+    const docRows = await prisma.$queryRaw<{ id: number }[]>(
+      Prisma.sql`SELECT id FROM documentos_estimacion WHERE proyecto_id = ${proyectoId} AND estado = 'LISTO' ORDER BY created_at DESC LIMIT 1`
+    )
+    if (!docRows.length) return null
+
+    const chunks = await prisma.$queryRaw<{ seccion: string | null; contenido: string; embedding: number[] | null }[]>(
+      Prisma.sql`SELECT seccion, contenido, embedding FROM documento_chunks WHERE proyecto_id = ${proyectoId} AND embedding IS NOT NULL`
+    )
+    if (!chunks.length) return null
+
+    const queryVec = await embed(consulta)
+    const top = chunks
+      .map(c => ({ seccion: c.seccion, contenido: c.contenido, score: cosineSimilarity(queryVec, c.embedding!) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .filter(c => c.score > 0.3) // solo relevantes
+
+    if (!top.length) return null
+    return top.map(c => `[${c.seccion ?? 'Estimación'}] ${c.contenido}`).join('\n\n')
+  } catch {
+    return null // si falla el embedding o la consulta, no interrumpe la nota
+  }
+}
 
 async function runTool(name: string, args: Record<string, unknown>, proyectoId: number): Promise<string> {
   const hoy = new Date()
@@ -302,6 +349,47 @@ async function runTool(name: string, args: Record<string, unknown>, proyectoId: 
       fecha_inicio_construccion: fmt(primeraConstr?.fecha_inicio ?? null),
       fecha_inicio_pruebas:      fmt(primeraPrueba?.fecha_inicio ?? null),
       fecha_entrega_tigo:        fmt(p.fecha_ejecucion),
+      contexto_estimacion:       await buscarContextoEstimacion(
+        proyectoId,
+        primeraCurso?.act_nombre ?? primPlan?.act_nombre ?? ''
+      ),
+    })
+  }
+
+  if (name === 'consultar_estimacion') {
+    const consulta = (args.consulta as string | undefined) ?? ''
+    if (!consulta.trim()) return JSON.stringify({ error: 'Consulta vacía' })
+
+    // Verificar si existe documento para este proyecto
+    const docRows = await prisma.$queryRaw<{ id: number }[]>(
+      Prisma.sql`SELECT id FROM documentos_estimacion WHERE proyecto_id = ${proyectoId} AND estado = 'LISTO' ORDER BY created_at DESC LIMIT 1`
+    )
+    if (!docRows.length) return JSON.stringify({ sin_documento: true, mensaje: 'No hay documento de estimación adjunto a este proyecto.' })
+    const docNombreRows = await prisma.$queryRaw<{ nombre: string }[]>(
+      Prisma.sql`SELECT nombre FROM documentos_estimacion WHERE id = ${docRows[0].id}`
+    )
+    const docNombre = docNombreRows[0]?.nombre ?? 'documento'
+
+    // Traer todos los chunks del proyecto con sus embeddings
+    const chunks = await prisma.$queryRaw<{ id: number; seccion: string | null; contenido: string; embedding: number[] | null }[]>(
+      Prisma.sql`SELECT id, seccion, contenido, embedding FROM documento_chunks WHERE proyecto_id = ${proyectoId} AND embedding IS NOT NULL`
+    )
+    if (!chunks.length) return JSON.stringify({ sin_chunks: true, mensaje: 'El documento no tiene chunks indexados.' })
+
+    // Generar embedding de la consulta y calcular similitud
+    const queryVec = await embed(consulta)
+    const scored = chunks
+      .map(c => ({ seccion: c.seccion, contenido: c.contenido, score: cosineSimilarity(queryVec, c.embedding!) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+
+    return JSON.stringify({
+      documento: docNombre,
+      resultados: scored.map(r => ({
+        seccion:   r.seccion ?? 'Sin sección',
+        contenido: r.contenido,
+        relevancia: Math.round(r.score * 100),
+      })),
     })
   }
 
@@ -320,7 +408,12 @@ Si no hay bloqueos usa "Sin novedades".
 Si no hay responsable de desbloqueo usa "N/A".
 Sé conciso y profesional.
 
-REGLA PRIORITARIA: Cuando el usuario pida nota Jira, reporte de avance, nota diaria o estado del proyecto, llama PRIMERO y ÚNICAMENTE a "obtener_contexto_nota_jira". Con los datos que devuelva esa tool, construye la nota en este formato exacto sin texto adicional:
+REGLA PRIORITARIA PARA NOTA JIRA: Cuando el usuario pida nota Jira, reporte de avance, nota diaria o estado del proyecto:
+1. Llama PRIMERO a "obtener_contexto_nota_jira". Esta tool ya incluye el campo "contexto_estimacion" con fragmentos del MAU si existe.
+2. Usa "contexto_estimacion" para enriquecer "SITUACIÓN ACTUAL" y "SIGUIENTE PASO" con el alcance real descrito en el documento. Si está vacío, redacta solo con los datos operativos.
+3. Con los datos combinados, construye la nota en este formato exacto sin texto adicional:
+
+REGLA PARA PREGUNTAS DE ALCANCE/ESTIMACIÓN: Si el usuario pregunta qué decía la estimación, qué falta por hacer según el documento, si hay brechas o qué se esperaba en un frente, usa "consultar_estimacion" con el término relevante.
 
 **SITUACIÓN ACTUAL:** [1 o 2 frases sobre qué se está haciendo]
 
@@ -348,48 +441,166 @@ REGLA PRIORITARIA: Cuando el usuario pida nota Jira, reporte de avance, nota dia
 
 **FECHA ENTREGA TIGO:** [dd/mm/aaaa o "No informado"]`
 
-// ─── Loop de tool calling ─────────────────────────────────────────────────────
+// ─── Detección de intención de nota Jira ─────────────────────────────────────
+
+function esIntenciónNotaJira(messages: MsgInput[]): boolean {
+  const ultimo = messages[messages.length - 1]
+  if (ultimo?.role !== 'user') return false
+  const t = ultimo.content.toLowerCase()
+
+  return (
+    // "nota jira" con o sin palabras entre medias
+    /nota.{0,30}jira/.test(t) ||
+    /jira.{0,30}nota/.test(t) ||
+    // "genera / generar + nota"
+    /gen[ae]r[a-z]*.{0,30}nota/.test(t) ||
+    // "nota + avance / diaria / estado"
+    /nota.{0,40}(avance|diaria|estado|reporte)/.test(t) ||
+    // "reporte de avance"
+    /reporte.{0,20}avance/.test(t) ||
+    // "avance del proyecto"
+    /avance.{0,20}proyecto/.test(t) ||
+    // coincidencia de dos palabras clave en el mismo mensaje
+    (t.includes('nota') && t.includes('jira')) ||
+    (t.includes('nota') && t.includes('avance')) ||
+    (t.includes('nota') && t.includes('formato')) ||
+    (t.includes('genera') && t.includes('nota')) ||
+    /estado.{0,20}proyecto/.test(t)
+  )
+}
+
+// ─── Render determinístico de nota Jira ──────────────────────────────────────
+
+type NotaCtx = {
+  situacion_actual_base: string
+  avance_general: number
+  porcentaje_desarrollo: number
+  porcentaje_documentacion: number
+  porcentaje_pruebas: number
+  siguiente_paso: string
+  fecha_siguiente_paso: string
+  problemas_detectados: string
+  area_persona_desbloqueo: string
+  en_cronograma: string
+  fecha_inicio_construccion: string
+  fecha_inicio_pruebas: string
+  fecha_entrega_tigo: string
+  contexto_estimacion?: string | null
+}
+
+function renderNotaJira(d: NotaCtx): string {
+  return [
+    `**SITUACIÓN ACTUAL:** ${d.situacion_actual_base}`,
+    '',
+    `**PORCENTAJE DE AVANCE GENERAL:** ${d.avance_general}%`,
+    '',
+    `**Porcentaje de Desarrollo:** ${d.porcentaje_desarrollo}%`,
+    `**Porcentaje de Documentación:** ${d.porcentaje_documentacion}%`,
+    `**Porcentaje de Pruebas:** ${d.porcentaje_pruebas}%`,
+    '',
+    `**SIGUIENTE PASO:** ${d.siguiente_paso}`,
+    '',
+    `**FECHA SIGUIENTE PASO:** ${d.fecha_siguiente_paso}`,
+    '',
+    `**PROBLEMAS DETECTADOS:** ${d.problemas_detectados}`,
+    '',
+    `**AREA/PERSONA DESBLOQUEO:** ${d.area_persona_desbloqueo}`,
+    '',
+    `**EN CRONOGRAMA:** ${d.en_cronograma}`,
+    '',
+    `**FECHA INICIO CONSTRUCCIÓN:** ${d.fecha_inicio_construccion}`,
+    '',
+    `**FECHA INICIO PRUEBAS:** ${d.fecha_inicio_pruebas}`,
+    '',
+    `**FECHA ENTREGA TIGO:** ${d.fecha_entrega_tigo}`,
+  ].join('\n')
+}
+
+// Usa el LLM solo para enriquecer situacion_actual_base y siguiente_paso.
+// Si falla o excede tiempo, devuelve los valores calculados sin cambios.
+async function enriquecerNarrativa(ctx: NotaCtx): Promise<NotaCtx> {
+  try {
+    const estimPrompt = ctx.contexto_estimacion
+      ? `\n\nContexto del documento de estimación (MAU):\n${ctx.contexto_estimacion}`
+      : ''
+
+    const res = await llm.chat.completions.create({
+      model:       MODEL,
+      temperature: 0.3,
+      max_tokens:  300,
+      messages: [
+        {
+          role: 'system',
+          content: `Eres analista de control operacional. Responde SOLO con un JSON válido con dos campos: "situacion" y "siguiente_paso". Sin texto adicional, sin markdown, sin explicaciones.`,
+        },
+        {
+          role: 'user',
+          content: `Mejora la redacción de estos dos campos para una nota de avance Jira. Usa solo los datos proporcionados, no inventes información.${estimPrompt}
+
+Datos actuales:
+- situacion_actual_base: "${ctx.situacion_actual_base}"
+- siguiente_paso: "${ctx.siguiente_paso}"
+- avance_general: ${ctx.avance_general}%
+- problemas: "${ctx.problemas_detectados}"
+
+Devuelve ÚNICAMENTE este JSON (sin markdown):
+{"situacion": "...", "siguiente_paso": "..."}`,
+        },
+      ],
+    })
+
+    const raw = res.choices[0].message.content?.trim() ?? ''
+    // Extraer JSON aunque el modelo envuelva con markdown
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) return ctx
+    const parsed = JSON.parse(match[0]) as { situacion?: string; siguiente_paso?: string }
+    return {
+      ...ctx,
+      situacion_actual_base: parsed.situacion?.trim()     || ctx.situacion_actual_base,
+      siguiente_paso:        parsed.siguiente_paso?.trim() || ctx.siguiente_paso,
+    }
+  } catch {
+    return ctx // fallback: devuelve los valores calculados sin tocar
+  }
+}
+
+// ─── Loop de tool calling (preguntas generales) ───────────────────────────────
 
 async function runAgentLoop(messages: ChatCompletionMessageParam[], proyectoId: number): Promise<string> {
-  const MAX_ITERATIONS = 5
+  const MAX_TOOL_ROUNDS = 3
+  let toolRounds = 0
 
-  for (let i = 0; i < MAX_ITERATIONS; i++) {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const forceAnswer = toolRounds >= MAX_TOOL_ROUNDS
+
     const response = await llm.chat.completions.create({
-      model: MODEL,
+      model:       MODEL,
       messages,
-      tools: TOOLS,
-      tool_choice: 'auto',
+      tools:       forceAnswer ? undefined : TOOLS,
+      tool_choice: forceAnswer ? undefined : 'auto',
       temperature: 0.2,
-      max_tokens: 1500,
+      max_tokens:  1500,
     })
 
     const msg = response.choices[0].message
 
-    // Sin tool calls → respuesta final
     if (!msg.tool_calls || msg.tool_calls.length === 0) {
       return msg.content ?? ''
     }
 
-    // Agregar la respuesta del asistente con sus tool calls al historial
+    toolRounds++
     messages.push(msg as ChatCompletionMessageParam)
 
-    // Ejecutar cada tool y agregar su resultado
     for (const tc of msg.tool_calls) {
       if (tc.type !== 'function') continue
       let args: Record<string, unknown> = {}
       try { args = JSON.parse(tc.function.arguments || '{}') } catch { /* args vacíos */ }
 
       const result = await runTool(tc.function.name, args, proyectoId)
-
-      messages.push({
-        role:         'tool',
-        tool_call_id: tc.id,
-        content:      result,
-      })
+      messages.push({ role: 'tool', tool_call_id: tc.id, content: result })
     }
   }
-
-  return 'No se pudo generar una respuesta en el número máximo de iteraciones.'
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -410,13 +621,21 @@ export async function POST(req: NextRequest, { params }: RouteCtx) {
       return NextResponse.json(errorResponse('messages requerido', 400), { status: 400 })
     }
 
+    // ── Camino determinístico: nota Jira ──────────────────────────────────
+    if (esIntenciónNotaJira(body.messages)) {
+      const rawJson = await runTool('obtener_contexto_nota_jira', {}, numId)
+      let ctx = JSON.parse(rawJson) as NotaCtx
+      ctx = await enriquecerNarrativa(ctx)
+      return NextResponse.json({ content: renderNotaJira(ctx) })
+    }
+
+    // ── Camino general: agent loop con tools ──────────────────────────────
     const messages: ChatCompletionMessageParam[] = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...body.messages.map(m => ({ role: m.role, content: m.content } as ChatCompletionMessageParam)),
     ]
 
     const content = await runAgentLoop(messages, numId)
-
     return NextResponse.json({ content })
   } catch (e) {
     console.error('[chat]', e)

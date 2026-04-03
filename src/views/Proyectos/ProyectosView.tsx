@@ -290,7 +290,7 @@ export function ProyectosView() {
 
                   <Link href={`/proyectos/${item.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                     {/* ID badge */}
-                    <div className="shrink-0 w-16 text-center">
+                    <div className="shrink-0 w-26 text-center">
                       <span className="text-xs font-mono font-bold px-2 py-1 rounded"
                         style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}>
                         {item.requerimiento}
@@ -318,12 +318,54 @@ export function ProyectosView() {
                       <p className="text-xs truncate mt-0.5" style={{ color: 'var(--color-text-soft)' }}>
                         {item.objetivo ?? 'Sin objetivo'}
                       </p>
-                      <div className="flex gap-3 mt-1 text-xs" style={{ color: 'var(--color-text-soft)' }}>
-                        {item.estimadoPor   && <span>Estimado: {item.estimadoPor}</span>}
-                        {item.supervisadoPor && <span>Supervisado: {item.supervisadoPor}</span>}
-                        <span>{item.actividadesCount} actividades</span>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        {/* Estimadores como chips */}
+                        {(item.estimadores ?? []).map(e => (
+                          <span
+                            key={e.id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium leading-none"
+                            style={{ backgroundColor: 'rgba(0,66,84,0.09)', color: 'var(--color-petroleum)' }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            {e.nombre}
+                          </span>
+                        ))}
+
+                        {/* Separador si hay ambos */}
+                        {(item.estimadores ?? []).length > 0 && item.supervisadoPor && (
+                          <span className="w-px h-3 mx-0.5 rounded-full" style={{ backgroundColor: 'var(--color-border)' }} />
+                        )}
+
+                        {/* Supervisor */}
+                        {item.supervisadoPor && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium leading-none"
+                            style={{ backgroundColor: 'rgba(37,99,235,0.08)', color: '#2563EB' }}
+                          >
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 1L3 5v6c0 5.25 3.75 10.15 9 11.35C17.25 21.15 21 16.25 21 11V5L12 1zm-1 14l-3-3 1.41-1.41L11 12.17l5.59-5.58L18 8l-7 7z"/>
+                            </svg>
+                            {item.supervisadoPor}
+                          </span>
+                        )}
+
+                        {/* Separador */}
+                        <span className="w-px h-3 mx-0.5 rounded-full" style={{ backgroundColor: 'var(--color-border)' }} />
+
+                        {/* Actividades y fecha */}
+                        <span className="text-[10px]" style={{ color: 'var(--color-text-soft)' }}>
+                          {item.actividadesCount} actividades
+                        </span>
                         {item.fechaEstimacion && (
-                          <span>{new Date(item.fechaEstimacion).toLocaleDateString('es-ES')}</span>
+                          <>
+                            <span className="text-[10px]" style={{ color: 'var(--color-border)' }}>·</span>
+                            <span className="text-[10px]" style={{ color: 'var(--color-text-soft)' }}>
+                              {new Date(item.fechaEstimacion).toLocaleDateString('es-ES')}
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>
@@ -352,6 +394,7 @@ export function ProyectosView() {
                         <button className="text-xs px-1.5 py-1 rounded hover:bg-[rgba(0,66,84,0.08)]"
                           style={{ color: 'var(--color-text-soft)' }} title="Editar">✎</button>
                       </Link>
+                      
                     ) : (
                       <Link href={`/proyectos/${item.id}`}>
                         <button

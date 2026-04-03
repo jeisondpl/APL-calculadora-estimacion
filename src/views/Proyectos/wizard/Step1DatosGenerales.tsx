@@ -59,7 +59,7 @@ export function Step1DatosGenerales() {
     return estimadorPool.filter(u => u.nombre.toLowerCase().includes(q))
   }, [estimadorPool, modalQuery])
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       requerimiento:   datosGenerales.requerimiento,
@@ -83,7 +83,12 @@ export function Step1DatosGenerales() {
   // Fetch lists on mount
   useEffect(() => {
     axios.get<UsuarioOption[]>('/api/usuarios/por-rol?roles=PRODUCT_OWNER')
-      .then(r => setSupervisores(r.data))
+      .then(r => {
+        setSupervisores(r.data)
+        if (datosGenerales.supervisadoPor) {
+          setValue('supervisadoPor', datosGenerales.supervisadoPor)
+        }
+      })
       .catch(() => {})
 
     axios.get<UsuarioOption[]>('/api/usuarios/por-rol?roles=DESARROLLADOR,QA')

@@ -1,0 +1,186 @@
+<mxfile host="Electron" modified="2026-04-03T00:00:00.000Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.8 Chrome/114.0.5735.289 Electron/25.5.0 Safari/537.36" version="21.6.8" type="device">
+  <diagram id="JiraNoteFlow" name="Flujo Generación Nota Jira">
+    <mxGraphModel dx="1422" dy="798" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TÍTULO -->
+        <mxCell id="title" value="Flujo de Generación de Nota Jira" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#004254;" vertex="1" parent="1">
+          <mxGeometry x="330" y="10" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- LEYENDA -->
+        <mxCell id="leyenda_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="930" y="60" width="230" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="leyenda_title" value="Leyenda" style="text;html=1;align=left;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="950" y="70" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="Inicio / Fin" style="shape=ellipse;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="950" y="100" width="90" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="Decisión" style="rhombus;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="950" y="148" width="90" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="Backend (calc.)" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="950" y="206" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="LLM" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1065" y="100" width="80" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="MAU / Embedding" style="rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1065" y="148" width="80" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6" value="Fallback" style="shape=parallelogram;perimeter=parallelogramPerimeter;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1065" y="196" width="80" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- INICIO -->
+        <mxCell id="node_input" value="&lt;b&gt;Usuario&lt;/b&gt;&#xa;&quot;genera nota&quot; / &quot;nota jira&quot;&#xa;&quot;reporte de avance&quot; / &quot;nota diaria&quot;" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="415" y="60" width="230" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- DECISIÓN: ¿Nota Jira? -->
+        <mxCell id="node_decide_nota" value="&lt;b&gt;esIntenciónNotaJira()&lt;/b&gt;&#xa;regex sobre último mensaje" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="405" y="178" width="250" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- PATH FALSE: Agent Loop -->
+        <mxCell id="node_agent_loop" value="&lt;b&gt;runAgentLoop()&lt;/b&gt;&#xa;Preguntas generales&#xa;Tool calling libre (≤3 rondas)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="65" y="195" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="node_agent_out" value="Respuesta&#xa;conversacional" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="85" y="295" width="160" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- PATH TRUE: obtener_contexto_nota_jira -->
+        <mxCell id="node_obtener_bg" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="365" y="320" width="330" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="node_obtener_title" value="&lt;b&gt;runTool(&#39;obtener_contexto_nota_jira&#39;)&lt;/b&gt;" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="365" y="324" width="330" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="node_obtener_detail" value="· Consulta proyectos + actividades + usuarios (DB)&#xa;· Clasifica cada actividad: COMPLETADA / EN CURSO / PLANIFICADA&#xa;· Calcula: avance_general, porcentajes por bloque funcional&#xa;· Determina: siguiente_paso, problemas_detectados, en_cronograma&#xa;· Obtiene: fechas clave, área desbloqueo&#xa;· Llama buscarContextoEstimacion(actividad_en_curso)" style="text;html=1;align=left;fontSize=10;fillColor=none;strokeColor=none;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="372" y="348" width="316" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- DECISIÓN: ¿MAU cargado? -->
+        <mxCell id="node_decide_mau" value="&lt;b&gt;¿Documento MAU&#xa;cargado en BD?&lt;/b&gt;&#xa;(documentos_estimacion WHERE estado=LISTO)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="400" y="510" width="260" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- BACKGROUND: SIN MAU -->
+        <mxCell id="bg_sin_mau" value="" style="rounded=1;fillColor=#f9f9f9;strokeColor=#aaaaaa;dashed=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="745" y="505" width="215" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="label_sin_mau" value="SIN MAU" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="745" y="508" width="215" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="node_sin_ctx" value="contexto_estimacion: &lt;b&gt;null&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#aaaaaa;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="763" y="535" width="179" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="node_sin_note" value="El LLM redacta con datos&#xa;operativos únicamente:&#xa;actividades · fechas · responsables&#xa;avance calculado por backend" style="text;html=1;align=center;fontSize=10;fillColor=none;strokeColor=none;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="748" y="592" width="210" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- BACKGROUND: CON MAU -->
+        <mxCell id="bg_con_mau" value="" style="rounded=1;fillColor=#fff8f0;strokeColor=#d79b00;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="505" width="250" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="label_con_mau" value="CON MAU" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="508" width="250" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="node_embed" value="&lt;b&gt;embed(actividad_en_curso)&lt;/b&gt;&#xa;text-embedding-nomic-embed-text-v1.5&#xa;→ vector de 768 dimensiones" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="55" y="535" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="node_coseno" value="&lt;b&gt;cosineSimilarity()&lt;/b&gt;&#xa;vector consulta vs embedding[] de cada chunk&#xa;(columna FLOAT8[] en PostgreSQL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="55" y="625" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="node_top3" value="&lt;b&gt;top-3 fragmentos relevantes&lt;/b&gt;&#xa;score &gt; 0.30 (umbral mínimo)&#xa;→ contexto_estimacion: &quot;[Sección] texto...&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="55" y="715" width="220" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ENRIQUECER NARRATIVA (LLM) -->
+        <mxCell id="node_enriquecer_bg" value="" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="355" y="890" width="350" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="node_enriquecer_title" value="&lt;b&gt;enriquecerNarrativa()  —  LLM (qwen2.5-7b)&lt;/b&gt;" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="355" y="895" width="350" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="node_enriquecer_detail" value="Mejora SOLO 2 campos narrativos:&#xa;· situacion_actual_base  (+ fragmentos MAU si existen)&#xa;· siguiente_paso&#xa;&#xa;Respuesta esperada: {&quot;situacion&quot;:&quot;...&quot;, &quot;siguiente_paso&quot;:&quot;...&quot;}&#xa;try/catch: si LLM falla → usa valores calculados por backend" style="text;html=1;align=left;fontSize=10;fillColor=none;strokeColor=none;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="363" y="920" width="334" height="102" as="geometry" />
+        </mxCell>
+
+        <!-- FALLBACK -->
+        <mxCell id="node_fallback" value="&lt;b&gt;Fallback&lt;/b&gt;&#xa;Valores calculados&#xa;sin enriquecimiento" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="765" y="915" width="175" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- RENDER NOTA -->
+        <mxCell id="node_render_bg" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="355" y="1070" width="350" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="node_render_title" value="&lt;b&gt;renderNotaJira()  —  Template fijo en backend&lt;/b&gt;" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="355" y="1075" width="350" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="node_render_detail" value="**SITUACIÓN ACTUAL:**&#xa;**PORCENTAJE DE AVANCE GENERAL:**&#xa;**Porcentaje de Desarrollo:**  ·  **Porcentaje de Documentación:**  ·  **Porcentaje de Pruebas:**&#xa;**SIGUIENTE PASO:**  ·  **FECHA SIGUIENTE PASO:**&#xa;**PROBLEMAS DETECTADOS:**  ·  **AREA/PERSONA DESBLOQUEO:**&#xa;**EN CRONOGRAMA:**  ·  **FECHA INICIO CONSTRUCCIÓN:**&#xa;**FECHA INICIO PRUEBAS:**  ·  **FECHA ENTREGA TIGO:**&#xa;&#xa;→ 12 campos  ·  Formato garantizado  ·  Sin dependencia del LLM" style="text;html=1;align=left;fontSize=10;fillColor=none;strokeColor=none;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="363" y="1100" width="334" height="128" as="geometry" />
+        </mxCell>
+
+        <!-- OUTPUT -->
+        <mxCell id="node_output" value="&lt;b&gt;Nota Jira Completa ✓&lt;/b&gt;&#xa;Formato garantizado · 12 campos&#xa;Siempre presente, nunca incompleta" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="1268" width="240" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_input" target="node_decide_nota">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="false" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_decide_nota" target="node_agent_loop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_agent_loop" target="node_agent_out">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="true" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_decide_nota" target="node_obtener_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_obtener_bg" target="node_decide_mau">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_decide_mau" target="node_sin_ctx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_decide_mau" target="node_embed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_embed" target="node_coseno">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_coseno" target="node_top3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_top3" target="node_enriquecer_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_sin_ctx" target="node_enriquecer_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_enriquecer_bg" target="node_render_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="LLM falla" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_enriquecer_bg" target="node_fallback">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_fallback" target="node_render_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="node_render_bg" target="node_output">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

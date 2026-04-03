@@ -53,6 +53,7 @@ function TablaActividades({ proyecto }: { proyecto: IResponseProyecto }) {
             <th className="px-3 py-2.5 text-center font-medium w-20 hidden sm:table-cell" style={{ color: 'var(--color-text-soft)' }}>Jornadas</th>
             <th className="px-3 py-2.5 text-left font-medium w-28 hidden md:table-cell" style={{ color: 'var(--color-text-soft)' }}>Fecha inicio</th>
             <th className="px-3 py-2.5 text-left font-medium w-28 hidden md:table-cell" style={{ color: 'var(--color-text-soft)' }}>Fecha fin</th>
+            <th className="px-3 py-2.5 text-left font-medium hidden lg:table-cell" style={{ color: 'var(--color-text-soft)' }}>Asignado a</th>
             <th className="px-3 py-2.5 text-center font-medium w-28" style={{ color: 'var(--color-text-soft)' }}>Estado</th>
           </tr>
         </thead>
@@ -100,6 +101,21 @@ function TablaActividades({ proyecto }: { proyecto: IResponseProyecto }) {
                 </td>
                 <td className="px-3 py-2.5 hidden md:table-cell" style={{ color: 'var(--color-text-soft)' }}>
                   {act.fechaFin ? new Date(act.fechaFin).toLocaleDateString('es-ES') : '—'}
+                </td>
+                <td className="px-3 py-2.5 hidden lg:table-cell">
+                  {act.asignadoANombre ? (
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}
+                    >
+                      <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                      </svg>
+                      {act.asignadoANombre}
+                    </span>
+                  ) : (
+                    <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>—</span>
+                  )}
                 </td>
                 <td className="px-3 py-2.5 text-center">
                   <span

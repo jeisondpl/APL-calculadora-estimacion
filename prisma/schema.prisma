@@ -156,6 +156,7 @@ model Proyecto {
 
   actividades  Actividad[]
   estimadores  ProyectoEstimador[]
+  documentos   DocumentoEstimacion[]
 
   @@map("proyectos")
 }
@@ -254,4 +255,41 @@ model ProyectoEstimador {
 
   @@id([proyectoId, usuarioId])
   @@map("proyecto_estimadores")
+}
+
+// ─── DOCUMENTO DE ESTIMACIÓN (MAU / adjunto) ──────────────────────────────────
+
+model DocumentoEstimacion {
+  id           Int      @id @default(autoincrement())
+  proyectoId   Int      @map("proyecto_id")
+  nombre       String   @db.VarChar(300)
+  tipo         String   @db.VarChar(20)           // pdf | docx | txt
+  contenidoRaw String   @db.Text                  @map("contenido_raw")
+  totalChunks  Int      @default(0)               @map("total_chunks")
+  estado       String   @default("PROCESANDO")    // PROCESANDO | LISTO | ERROR
+  createdAt    DateTime @default(now())            @map("created_at")
+  updatedAt    DateTime @updatedAt                 @map("updated_at")
+
+  proyecto Proyecto        @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  chunks   DocumentoChunk[]
+
+  @@index([proyectoId])
+  @@map("documentos_estimacion")
+}
+
+// Chunks de texto + embedding (columna embedding vector(768) agregada vía SQL raw)
+model DocumentoChunk {
+  id          Int      @id @default(autoincrement())
+  documentoId Int      @map("documento_id")
+  proyectoId  Int      @map("proyecto_id")
+  seccion     String?  @db.VarChar(500)
+  contenido   String   @db.Text
+  orden       Int
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  documento DocumentoEstimacion @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+
+  @@index([proyectoId])
+  @@index([documentoId])
+  @@map("documento_chunks")
 }

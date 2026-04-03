@@ -4,6 +4,10 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 
+// ─── Tipos doc ────────────────────────────────────────────────────────────────
+
+interface DocInfo { id: number; nombre: string; totalChunks: number; estado: string }
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 type Role = 'user' | 'assistant'
@@ -211,11 +215,52 @@ export function ChatBox({ proyectoId }: { proyectoId: number }) {
       content: 'Hola, soy tu asistente de control operacional. Puedo generar la nota de avance para Jira o responder preguntas sobre este proyecto. ¿En qué te ayudo?',
     },
   ])
-  const [input, setInput]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [viewing, setViewing]   = useState<string | null>(null)
-  const bottomRef               = useRef<HTMLDivElement>(null)
-  const textareaRef             = useRef<HTMLTextAreaElement>(null)
+  const [input, setInput]         = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [viewing, setViewing]     = useState<string | null>(null)
+  const [doc, setDoc]             = useState<DocInfo | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadErr, setUploadErr] = useState<string | null>(null)
+  const bottomRef                 = useRef<HTMLDivElement>(null)
+  const textareaRef               = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef              = useRef<HTMLInputElement>(null)
+
+  // Cargar documento existente al montar
+  useEffect(() => {
+    axios.get<{ response: DocInfo[] }>(`/api/proyectos/${proyectoId}/documentos`)
+      .then(res => {
+        const docs = res.data.response ?? []
+        const listo = docs.find(d => d.estado === 'LISTO')
+        if (listo) setDoc(listo)
+      })
+      .catch(() => { /* sin doc */ })
+  }, [proyectoId])
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadErr(null)
+    setUploading(true)
+
+    const fd = new FormData()
+    fd.append('file', file)
+
+    try {
+      const res = await axios.post<{ response: DocInfo }>(`/api/proyectos/${proyectoId}/documentos`, fd)
+      setDoc({ id: res.data.response.id, nombre: file.name, totalChunks: res.data.response.totalChunks ?? 0, estado: 'LISTO' })
+      setMessages(prev => [...prev, {
+        id:      Date.now().toString() + '_doc',
+        role:    'assistant',
+        content: `✓ Documento "${file.name}" ingresado correctamente (${res.data.response.totalChunks} fragmentos). Ahora puedo responder preguntas sobre el alcance estimado.`,
+      }])
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? (err.response?.data?.msg ?? err.message) : 'Error al procesar el documento.'
+      setUploadErr(msg)
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -279,17 +324,60 @@ export function ChatBox({ proyectoId }: { proyectoId: number }) {
       >
         {/* Header */}
         <div
-          className="flex items-center gap-2.5 px-4 py-3 border-b shrink-0"
+          className="flex items-center gap-2.5 px-4 py-3 border-b shrink-0 flex-wrap"
           style={{ borderColor: 'var(--color-border)', backgroundColor: 'rgba(0,66,84,0.04)' }}
         >
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
           <span className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
             Asistente operacional
           </span>
-          <span className="text-xs ml-auto" style={{ color: 'var(--color-text-soft)' }}>
-            qwen2.5 · LM Studio
-          </span>
+
+          {/* Badge del documento cargado */}
+          {doc ? (
+            <span
+              className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.3)' }}
+              title={`${doc.nombre} · ${doc.totalChunks} fragmentos`}
+            >
+              <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" stroke="currentColor" fill="none" strokeWidth="2"/></svg>
+              MAU cargado
+            </span>
+          ) : (
+            <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>Sin estimación adjunta</span>
+          )}
+
+          {/* Botón adjuntar */}
+          <div className="ml-auto flex items-center gap-2">
+            <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt,.md" className="hidden" onChange={handleFileChange} />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-75 disabled:opacity-40"
+              style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)', border: '1px solid var(--color-border)' }}
+              title="Adjuntar documento de estimación (PDF, DOCX, TXT)"
+            >
+              {uploading ? (
+                <svg width="12" height="12" className="animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              )}
+              {uploading ? 'Procesando…' : 'Adjuntar MAU'}
+            </button>
+            <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>qwen2.5 · LM Studio</span>
+          </div>
         </div>
+
+        {/* Error de upload */}
+        {uploadErr && (
+          <div className="px-4 py-2 text-xs shrink-0 flex items-center justify-between" style={{ backgroundColor: 'rgba(239,68,68,0.08)', color: '#EF4444' }}>
+            <span>⚠ {uploadErr}</span>
+            <button onClick={() => setUploadErr(null)} className="ml-2 font-bold hover:opacity-70">×</button>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
