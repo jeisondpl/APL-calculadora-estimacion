@@ -329,7 +329,8 @@ export function ProyectoDetalleView({ id }: { id: number }) {
                         <th className='px-3 py-2.5 text-left font-medium w-8'>#</th>
                         <th className='px-3 py-2.5 text-left font-medium'>Actividad</th>
                         <th className='px-3 py-2.5 text-left font-medium w-36 hidden md:table-cell'>Bloque</th>
-                        <th className='px-3 py-2.5 text-center font-medium w-20'>Jornadas</th>
+                        <th className='px-3 py-2.5 text-center font-medium w-24'>Jornadas</th>
+                        <th className='px-3 py-2.5 text-left font-medium w-36 hidden lg:table-cell'>Creado por</th>
                         <th className='px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell'>Fecha inicio</th>
                         <th className='px-3 py-2.5 text-left font-medium w-28 hidden sm:table-cell'>Fecha fin</th>
                       </tr>
@@ -346,8 +347,36 @@ export function ProyectoDetalleView({ id }: { id: number }) {
                           <td className='px-3 py-2.5 hidden md:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
                             {act.bloque || '—'}
                           </td>
-                          <td className='px-3 py-2.5 text-center text-sm font-semibold' style={{ color: 'var(--color-petroleum)' }}>
-                            {act.jornadas ?? '—'}
+                          <td className='px-3 py-2.5 text-center'>
+                            {act.jornadas && act.jornadas > 0 ? (
+                              <span className='text-sm font-semibold' style={{ color: 'var(--color-petroleum)' }}>
+                                {act.jornadas}
+                              </span>
+                            ) : (
+                              <span
+                                className='text-xs px-2 py-0.5 rounded-full font-medium'
+                                style={{ backgroundColor: 'rgba(245,158,11,0.12)', color: '#d97706' }}
+                              >
+                                ⚠ Sin jornadas
+                              </span>
+                            )}
+                          </td>
+                          <td className='px-3 py-2.5 hidden lg:table-cell'>
+                            {act.creadoPorNombre ? (
+                              <span
+                                className='text-xs px-2 py-0.5 rounded-full font-medium'
+                                style={{ backgroundColor: 'rgba(0,66,84,0.08)', color: 'var(--color-petroleum)' }}
+                              >
+                                {act.creadoPorNombre}
+                              </span>
+                            ) : (
+                              <span
+                                className='text-xs px-2 py-0.5 rounded-full font-medium'
+                                style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981' }}
+                              >
+                                Sistema
+                              </span>
+                            )}
                           </td>
                           <td className='px-3 py-2.5 hidden sm:table-cell text-xs' style={{ color: 'var(--color-text-soft)' }}>
                             {act.fechaInicio ? new Date(act.fechaInicio).toLocaleDateString('es-ES') : '—'}
