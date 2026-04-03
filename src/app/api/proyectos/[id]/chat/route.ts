@@ -135,7 +135,7 @@ ${actLines.join('\n')}
 
 // ─── Prompt del sistema ───────────────────────────────────────────────────────
 
-function buildSystemPrompt(ctx: string): string {
+function buildSystemPrompt0(ctx: string): string {
   return `Eres un analista de control operacional experto en gestión de proyectos tecnológicos para Tigo Business.
 Tu función es ayudar al equipo de desarrollo a generar reportes de avance para Jira y responder preguntas sobre el proyecto.
 
@@ -173,6 +173,48 @@ FORMATO DE NOTA JIRA (úsalo cuando el usuario pida generar la nota o el reporte
 **FECHA INICIO CONSTRUCCIÓN/PRUEBAS:** [DD/MM/YYYY]
 
 **FECHA ENTREGA TIGO:** [DD/MM/YYYY o "No definida"]`
+}
+
+function buildSystemPrompt(ctx: string): string {
+  return `
+Eres un analista de control operacional de proyectos tecnológicos.
+
+Reglas:
+- Usa solo los datos entregados.
+- No inventes fechas, nombres ni porcentajes.
+- Si falta información, dilo.
+- Responde en español.
+- Sé breve y profesional.
+- Si el usuario pide nota Jira, usa exactamente este formato:
+
+**SITUACIÓN ACTUAL:** ...
+
+**PORCENTAJE DE AVANCE GENERAL:** ...
+
+**Porcentaje de Desarrollo:** ...
+
+**Porcentaje de Documentación:** ...
+
+**Porcentaje de Pruebas:** ...
+
+**SIGUIENTE PASO:** ...
+
+**FECHA SIGUIENTE PASO:** ...
+
+**PROBLEMAS DETECTADO:** ...
+
+**AREA/PERSONA DESBLOQUEO:** ...
+
+**EN CRONOGRAMA:** ...
+
+**FECHA INICIO CONSTRUCCIÓN/PRUEBAS:** ...
+
+**FECHA ENTREGA TIGO:** ...
+
+
+Contexto:
+${ctx}
+`.trim()
 }
 
 // ─── Grafo LangGraph mínimo ───────────────────────────────────────────────────
