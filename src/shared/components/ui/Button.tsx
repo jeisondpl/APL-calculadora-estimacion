@@ -45,8 +45,13 @@ export function Button({
     <button
       disabled={isDisabled}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-medium border transition-opacity cursor-pointer',
+        'inline-flex items-center justify-center gap-2 font-medium border transition-colors cursor-pointer',
         'disabled:opacity-50 disabled:cursor-not-allowed',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petroleum',
+        variant === 'primary'   && 'hover:brightness-110 active:brightness-95',
+        variant === 'secondary' && 'hover:bg-neutral-warm',
+        variant === 'ghost'     && 'hover:bg-neutral-warm/60',
+        variant === 'danger'    && 'hover:brightness-110 active:brightness-95',
         VARIANTS[variant],
         SIZES[size],
         className

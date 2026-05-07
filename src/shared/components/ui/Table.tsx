@@ -44,6 +44,7 @@ export function Table<T>({
             {columns.map(col => (
               <th
                 key={String(col.key)}
+                scope="col"
                 className={cn(
                   'px-4 py-3 text-xs font-semibold uppercase tracking-wider',
                   alignClass[col.align ?? 'left']

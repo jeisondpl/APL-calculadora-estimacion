@@ -24,21 +24,25 @@ const ROL_LABELS: Record<string, string> = {
   QA:            'QA',
 }
 
-const ROL_COLORS: Record<string, string> = {
-  SUPERUSUARIO:  '#f59e0b',
-  PRODUCT_OWNER: '#3b82f6',
-  DESARROLLADOR: '#004254',
-  QA:            '#10b981',
+// Mismo mapeo que Topbar (alineado con .claude/skills/indra-corporate-ui/reference.md)
+const ROL_COLORS: Record<string, { fg: string; bg: string }> = {
+  SUPERUSUARIO:  { fg: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+  PRODUCT_OWNER: { fg: '#3B82F6', bg: 'rgba(59,130,246,0.12)' },
+  DESARROLLADOR: { fg: 'var(--color-petroleum)', bg: 'rgba(0,66,84,0.10)' },
+  QA:            { fg: '#10B981', bg: 'rgba(16,185,129,0.12)' },
 }
+const ROL_FALLBACK = { fg: 'var(--color-text-soft)', bg: 'rgba(170,170,159,0.18)' }
 
 const EMPTY_FORM = { nombre: '', email: '', password: '', rolId: '', activo: true }
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 function Avatar({ nombre, rolNombre }: { nombre: string; rolNombre: string }) {
+  const rol = ROL_COLORS[rolNombre] ?? ROL_FALLBACK
   return (
     <div
-      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 select-none"
-      style={{ backgroundColor: ROL_COLORS[rolNombre] ?? '#888' }}
+      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 select-none"
+      style={{ backgroundColor: rol.fg, color: 'var(--color-text-invert)' }}
+      aria-hidden="true"
     >
       {nombre.charAt(0).toUpperCase()}
     </div>
@@ -46,13 +50,11 @@ function Avatar({ nombre, rolNombre }: { nombre: string; rolNombre: string }) {
 }
 
 function RolBadge({ nombre }: { nombre: string }) {
+  const rol = ROL_COLORS[nombre] ?? ROL_FALLBACK
   return (
     <span
       className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap"
-      style={{
-        backgroundColor: `${ROL_COLORS[nombre] ?? '#888'}18`,
-        color:           ROL_COLORS[nombre] ?? '#888',
-      }}
+      style={{ backgroundColor: rol.bg, color: rol.fg }}
     >
       {ROL_LABELS[nombre] ?? nombre}
     </span>
@@ -281,9 +283,9 @@ export function AdminUsuariosView() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard label="Total usuarios"  value={stats.total} />
-        <StatCard label="Product Owner"   value={stats.po}    color="#3b82f6" />
-        <StatCard label="Desarrolladores" value={stats.devs}  color="#004254" />
-        <StatCard label="QA"              value={stats.qa}    color="#10b981" />
+        <StatCard label="Product Owner"   value={stats.po}    color="#3B82F6" />
+        <StatCard label="Desarrolladores" value={stats.devs}  color="var(--color-petroleum)" />
+        <StatCard label="QA"              value={stats.qa}    color="#10B981" />
       </div>
 
       {/* Filtros */}

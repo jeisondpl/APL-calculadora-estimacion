@@ -29,12 +29,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           className={cn(
-            'w-full px-3 py-2 text-sm rounded-lg border outline-none transition-colors',
+            'w-full px-3 py-2 text-sm rounded-lg border transition-colors',
             'placeholder:text-[var(--color-warm-gray)]',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
             error
-              ? 'border-red-400 focus:border-red-500'
-              : 'focus:border-[var(--color-petroleum)]',
+              ? 'border-red-400 focus:border-red-500 focus-visible:ring-red-300'
+              : 'focus:border-[var(--color-petroleum)] focus-visible:ring-petroleum/40',
             className
           )}
           style={{
@@ -45,10 +48,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p className="text-xs" style={{ color: '#C0392B' }}>{error}</p>
+          <p id={`${inputId}-error`} className="text-xs" style={{ color: '#C0392B' }} role="alert">{error}</p>
         )}
         {hint && !error && (
-          <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{hint}</p>
+          <p id={`${inputId}-hint`} className="text-xs" style={{ color: 'var(--color-text-soft)' }}>{hint}</p>
         )}
       </div>
     )

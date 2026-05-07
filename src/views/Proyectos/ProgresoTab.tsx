@@ -120,7 +120,7 @@ function GraficaDesarrolladores({ data }: { data: DevStat[] }) {
             type="number"
             domain={[0, 100]}
             tickFormatter={v => `${v}%`}
-            tick={{ fontSize: 10, fill: 'var(--color-text-soft)' } as React.CSSProperties}
+            tick={{ fontSize: 10, fill: 'var(--color-text-soft)' }}
             axisLine={false}
             tickLine={false}
           />
@@ -128,7 +128,7 @@ function GraficaDesarrolladores({ data }: { data: DevStat[] }) {
             type="category"
             dataKey="nombre"
             width={112}
-            tick={{ fontSize: 11, fill: 'var(--color-text)' } as React.CSSProperties}
+            tick={{ fontSize: 11, fill: 'var(--color-text)' }}
             axisLine={false}
             tickLine={false}
           />
@@ -145,8 +145,8 @@ function GraficaDesarrolladores({ data }: { data: DevStat[] }) {
             <LabelList
               dataKey="avance"
               position="right"
-              formatter={(v: number) => v > 0 ? `${v}%` : ''}
-              style={{ fontSize: 10, fill: 'var(--color-text-soft)', fontWeight: 600 } as React.CSSProperties}
+              formatter={(v) => (typeof v === 'number' && v > 0) ? `${v}%` : ''}
+              style={{ fontSize: 10, fill: 'var(--color-text-soft)', fontWeight: 600 }}
             />
           </Bar>
         </BarChart>

@@ -535,7 +535,7 @@ export function Step2Actividades() {
               {/* Actividades custom — sortables */}
               <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                 {customActividades.length > 0 && (
-                  <tr aria-hidden><td colSpan={6} style={{ padding: 0, height: 0, borderTop: '1px solid #BCBBB5' }} /></tr>
+                  <tr aria-hidden><td colSpan={6} style={{ padding: 0, height: 0, borderTop: '1px solid var(--color-border)' }} /></tr>
                 )}
                 {customActividades.map((act, customIdx) => {
                   const globalIdx = actividades.indexOf(act)

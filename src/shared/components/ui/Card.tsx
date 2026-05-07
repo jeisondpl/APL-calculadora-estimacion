@@ -4,6 +4,7 @@ interface CardProps {
   children: React.ReactNode
   className?: string
   padding?: 'none' | 'sm' | 'md' | 'lg'
+  hoverable?: boolean
 }
 
 interface CardHeaderProps {
@@ -19,10 +20,15 @@ const PADDING = {
   lg:   'p-8',
 }
 
-export function Card({ children, className, padding = 'md' }: CardProps) {
+export function Card({ children, className, padding = 'md', hoverable = false }: CardProps) {
   return (
     <div
-      className={cn('rounded-card border', PADDING[padding], className)}
+      className={cn(
+        'rounded-card border transition-shadow duration-200',
+        hoverable && 'hover:shadow-card-hover',
+        PADDING[padding],
+        className
+      )}
       style={{
         backgroundColor: 'var(--color-surface)',
         borderColor: 'var(--color-border)',

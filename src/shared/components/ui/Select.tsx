@@ -33,11 +33,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           id={selectId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${selectId}-error` : undefined}
           className={cn(
-            'w-full px-3 py-2 text-sm rounded-lg border outline-none transition-colors cursor-pointer',
+            'w-full px-3 py-2 text-sm rounded-lg border transition-colors cursor-pointer',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
             error
-              ? 'border-red-400'
-              : 'focus:border-[var(--color-petroleum)]',
+              ? 'border-red-400 focus-visible:ring-red-300'
+              : 'focus:border-[var(--color-petroleum)] focus-visible:ring-petroleum/40',
             className
           )}
           style={{
@@ -57,7 +60,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <p className="text-xs" style={{ color: '#C0392B' }}>{error}</p>
+          <p id={`${selectId}-error`} className="text-xs" style={{ color: '#C0392B' }} role="alert">{error}</p>
         )}
       </div>
     )

@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { href: '/catalogos',   label: 'Catálogos',   icon: '⊠', roles: ['SUPERUSUARIO', 'PRODUCT_OWNER'] },
   { href: '/calculadora', label: 'Calculadora', icon: '⊞', roles: null },
   { href: '/historial',   label: 'Historial',   icon: '⊙', roles: null },
-]
+] as const
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -20,8 +20,23 @@ export function Sidebar() {
   const user   = session?.user as unknown as { rol?: string } | undefined
   const rolKey = user?.rol ?? ''
 
+  const navLinkClasses = (isActive: boolean) => cn(
+    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-success)]',
+    isActive ? 'font-medium' : 'font-normal hover:bg-white/5 hover:text-white'
+  )
+
+  const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
+    color:           isActive ? 'var(--color-text-invert)' : 'var(--color-warm-gray)',
+    backgroundColor: isActive ? 'var(--color-petroleum)' : 'transparent',
+  })
+
   return (
-    <aside className='w-60 shrink-0 flex flex-col min-h-screen' style={{ backgroundColor: 'var(--color-deep-navy)' }}>
+    <aside
+      className='w-60 shrink-0 flex flex-col min-h-screen'
+      style={{ backgroundColor: 'var(--color-deep-navy)' }}
+      aria-label="Navegación principal"
+    >
       {/* Logo / header */}
       <div className='px-5 py-4 border-b' style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
         <Image
@@ -38,22 +53,20 @@ export function Sidebar() {
       </div>
 
       {/* Navegación */}
-      <nav className='flex-1 px-3 py-4 space-y-0.5'>
-        {NAV_ITEMS.filter(item => !item.roles || item.roles.includes(rolKey)).map((item) => {
+      <nav className='flex-1 px-3 py-4 space-y-0.5' aria-label="Menú de secciones">
+        {NAV_ITEMS.filter(item => !item.roles || (item.roles as readonly string[]).includes(rolKey)).map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors', isActive ? 'text-white font-medium' : 'font-normal hover:text-white')}
-              style={{
-                color:           isActive ? '#fff' : 'var(--color-warm-gray)',
-                backgroundColor: isActive ? 'var(--color-petroleum)' : 'transparent',
-              }}
+              aria-current={isActive ? 'page' : undefined}
+              className={navLinkClasses(isActive)}
+              style={navLinkStyle(isActive)}
             >
-              <span className='text-base leading-none'>{item.icon}</span>
+              <span className='text-base leading-none' aria-hidden="true">{item.icon}</span>
               {item.label}
-              {isActive && <span className='ml-auto w-1.5 h-1.5 rounded-full' style={{ backgroundColor: 'var(--color-success)' }} />}
+              {isActive && <span className='ml-auto w-1.5 h-1.5 rounded-full' style={{ backgroundColor: 'var(--color-success)' }} aria-hidden="true" />}
             </Link>
           )
         })}
@@ -62,17 +75,14 @@ export function Sidebar() {
         {rolKey === 'SUPERUSUARIO' && (
           <Link
             href='/admin/usuarios'
-            className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
-              pathname.startsWith('/admin') ? 'text-white font-medium' : 'font-normal hover:text-white')}
-            style={{
-              color:           pathname.startsWith('/admin') ? '#fff' : 'var(--color-warm-gray)',
-              backgroundColor: pathname.startsWith('/admin') ? 'var(--color-petroleum)' : 'transparent',
-            }}
+            aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
+            className={navLinkClasses(pathname.startsWith('/admin'))}
+            style={navLinkStyle(pathname.startsWith('/admin'))}
           >
-            <span className='text-base leading-none'>⚙</span>
+            <span className='text-base leading-none' aria-hidden="true">⚙</span>
             Usuarios
             {pathname.startsWith('/admin') && (
-              <span className='ml-auto w-1.5 h-1.5 rounded-full' style={{ backgroundColor: 'var(--color-success)' }} />
+              <span className='ml-auto w-1.5 h-1.5 rounded-full' style={{ backgroundColor: 'var(--color-success)' }} aria-hidden="true" />
             )}
           </Link>
         )}
