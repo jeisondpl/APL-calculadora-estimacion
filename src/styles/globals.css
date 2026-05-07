@@ -33,6 +33,10 @@
   --z-modal-backdrop: 400;
   --z-modal:          500;
   --z-toast:          800;
+
+  /* Sombras (alineadas con tailwind.config theme.extend.boxShadow) */
+  --shadow-card:       0 1px 4px 0 rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 16px 0 rgba(0, 36, 50, 0.12);
 }
 
 /* ─── Reset base ──────────────────────────────────────────────────────────── */

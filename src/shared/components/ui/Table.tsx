@@ -76,7 +76,7 @@ export function Table<T>({
             data.map((row, idx) => (
               <tr
                 key={keyExtractor(row)}
-                className="border-t transition-colors hover:bg-[var(--color-neutral-warm)]"
+                className="border-t transition-colors hover:bg-neutral-warm"
                 style={{ borderColor: 'var(--color-border)', backgroundColor: idx % 2 === 1 ? 'rgba(227,226,218,0.3)' : 'var(--color-surface)' }}
               >
                 {columns.map(col => (
