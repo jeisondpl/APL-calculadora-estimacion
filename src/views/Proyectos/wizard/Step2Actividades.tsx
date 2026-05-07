@@ -492,7 +492,8 @@ export function Step2Actividades() {
           <DragDropProvider
             onDragEnd={(event) => {
               // move reorders only custom activities; defaults stay in place
-              const newCustom = move(customActividades, event)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const newCustom = move(customActividades as any, event) as unknown as IActividad[]
               reorderByArray([...defaultActividades, ...newCustom])
               setEditingIdx(null)
             }}

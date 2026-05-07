@@ -71,9 +71,40 @@ Plantillas para registro de hallazgos:
 - [`plantilla-qa.md`](./plantilla-qa.md) — formato ficha por bug/recomendación
 - [`plantilla-qa-tabla.md`](./plantilla-qa-tabla.md) — formato tabular consolidado
 
+## 🚀 Deploy en Vercel + Neon
+
+### 1. Crear base de datos en Neon
+
+- Crear proyecto en [neon.tech](https://neon.tech) — región **AWS US East 1 (N. Virginia)** + Postgres 17
+- Copiar el **connection string** con pooling activado (acaba en `-pooler.c-7.us-east-1.aws.neon.tech`)
+
+### 2. Importar repo en Vercel
+
+- New Project → Import desde GitHub `jeisondpl/APL-calculadora-estimacion` rama `main`
+- Application Preset: **Next.js** (auto-detectado por `vercel.json`)
+
+### 3. Variables de entorno en Vercel
+
+| Variable | Valor |
+|----------|-------|
+| `DATABASE_URL` | Connection string de Neon (con `?sslmode=require&channel_binding=require`) |
+| `AUTH_SECRET` | Generar con `openssl rand -base64 32` |
+| `AUTH_URL` | URL final del proyecto (ej. `https://apl-calculadora-estimacion-xxxx.vercel.app`) |
+| `NEXT_PUBLIC_API_URL` | Misma URL + `/api` |
+
+### 4. Migraciones Prisma
+
+Antes del primer deploy, correr migraciones contra Neon:
+
+```bash
+DATABASE_URL="<neon-connection-string>" pnpm prisma migrate deploy
+```
+
+`vercel.json` ya ejecuta `prisma generate` automáticamente en cada build.
+
 ## 🌳 Ramas
 
-- `main` — rama estable
+- `main` — rama estable (la que despliega Vercel)
 - `feature/proyectos-con-actividades` — feature branch activa
 
 ## 📝 Licencia
