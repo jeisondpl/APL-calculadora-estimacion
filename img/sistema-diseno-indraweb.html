@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Diseño – Indraweb</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; color: #212529; background: #FFFFFF; }
+  
+  /* ===== LAYOUT ===== */
+  .ds-wrapper { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+  .ds-section { margin-bottom: 64px; }
+  .ds-section-title { font-family: NoeDisplay, Georgia, serif; font-size: 23px; font-weight: 400; color: #03657C; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #FBBB21; }
+  .ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+  .ds-grid-wide { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  
+  /* ===== PAGE HEADER ===== */
+  .ds-page-header { background: #004254; color: #FFFFFF; padding: 40px; margin-bottom: 48px; }
+  .ds-page-header h1 { font-family: NeoSansPro, Helvetica, sans-serif; font-size: 26px; font-weight: 700; color: #FBBB21; }
+  .ds-page-header p { font-family: NeoSansPro, Helvetica, sans-serif; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.8); margin-top: 8px; }
+
+  /* ===== COLOR SWATCHES ===== */
+  .swatch { border-radius: 4px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+  .swatch-color { height: 80px; width: 100%; }
+  .swatch-info { padding: 10px 12px; background: #FFFFFF; border: 1px solid #E5E5E5; border-top: none; }
+  .swatch-name { font-size: 11px; font-weight: 700; color: #212529; }
+  .swatch-hex { font-size: 11px; color: #666666; font-family: monospace; }
+  .swatch-role { font-size: 10px; color: #999999; }
+
+  /* ===== TYPOGRAPHY SPECIMENS ===== */
+  .type-specimen { padding: 16px; background: #F8F8F8; border-left: 4px solid #03657C; margin-bottom: 12px; border-radius: 0 4px 4px 0; }
+  .type-specimen-label { font-size: 10px; font-family: monospace; color: #999; margin-bottom: 6px; }
+  .type-meta { font-size: 11px; color: #666; margin-top: 6px; }
+
+  /* ===== COMPONENT DEMO AREA ===== */
+  .demo-area { background: #F8F8F8; border: 1px solid #E5E5E5; padding: 32px; border-radius: 4px; }
+  .demo-area--dark { background: #004254; }
+  .demo-area--teal { background: #03657C; }
+
+  /* ===== SPACING SCALE ===== */
+  .spacing-row { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+  .spacing-box { background: #FBBB21; flex-shrink: 0; }
+  .spacing-label { font-size: 12px; font-family: monospace; color: #212529; }
+
+  /* ===== TOKEN TABLE ===== */
+  table.ds-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ds-table th { background: #004254; color: #FFFFFF; padding: 10px 14px; text-align: left; font-weight: 600; }
+  table.ds-table td { padding: 10px 14px; border-bottom: 1px solid #E5E5E5; vertical-align: top; }
+  table.ds-table tr:hover td { background: #F8F8F8; }
+  code { font-family: monospace; background: #EAEAEA; padding: 2px 5px; border-radius: 3px; font-size: 12px; }
+  
+  /* ===== COMPONENT EXAMPLES ===== */
+  /* Header */
+  .ex-header { background: #004254; padding: 20px 30px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .ex-header__logo { font-family: NeoSansPro, sans-serif; font-size: 20px; font-weight: 300; color: #FFFFFF; }
+  .ex-header__logo span { color: #FBBB21; font-weight: 700; }
+  .ex-header__search { background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.5); color: #FFFFFF; padding: 8px 5px; font-size: 14px; width: 200px; outline: none; }
+  .ex-header__search::placeholder { color: rgba(255,255,255,0.6); }
+  
+  /* Nav */
+  .ex-nav { background: #03657C; display: flex; }
+  .ex-nav a { font-family: NeoSansPro, sans-serif; font-size: 18px; font-weight: 400; color: #FFFFFF; padding: 12px 20px; text-decoration: none; display: block; }
+  .ex-nav a:hover { background: rgba(255,255,255,0.1); }
+  
+  /* Dropdown nav */
+  .ex-dropdown { background: #F8F8F8; padding: 26px 20px 32px; display: flex; gap: 32px; }
+  .ex-dropdown__group-title { font-family: NeoSansPro, sans-serif; font-size: 16px; font-weight: 500; color: #333333; margin-bottom: 8px; }
+  .ex-dropdown__link { font-family: NeoSansPro, sans-serif; font-size: 14px; color: #004254; text-decoration: none; display: block; padding: 4px 0; }
+  
+  /* Profile card */
+  .ex-profile { background: #FFFFFF; padding: 24px; display: flex; gap: 20px; }
+  .ex-profile__avatar { width: 80px; height: 80px; border-radius: 50%; background: #E5E5E5; flex-shrink: 0; }
+  .ex-profile__name { font-family: NeoSansPro, sans-serif; font-size: 26px; font-weight: 700; color: #004254; }
+  .ex-profile__org { font-family: NeoSansPro, sans-serif; font-size: 14px; color: #004254; }
+  .ex-profile__pos { font-size: 14px; color: #666666; }
+  .ex-profile__email { font-size: 14px; color: #007BFF; }
+  .ex-profile__badge { display: inline-block; background: #FBBB21; color: #03657C; font-size: 12px; font-weight: 700; padding: 4px 10px; margin-top: 8px; }
+  
+  /* Buttons */
+  .ex-btn-primary { background: #FBBB21; color: #004254; border: 4px solid #FBBB21; padding: 8px 20px; font-size: 16px; font-family: Helvetica, sans-serif; font-weight: 400; cursor: pointer; }
+  .ex-btn-secondary { background: transparent; color: #03657C; border: 1px solid #03657C; padding: 7px 16px; font-size: 13px; font-family: Helvetica, sans-serif; font-weight: 700; border-radius: 4px; cursor: pointer; }
+  .ex-btn-link { background: transparent; color: #007BFF; border: none; font-size: 16px; padding: 0; cursor: pointer; text-decoration: underline; }
+  
+  /* Data fields */
+  .ex-data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 20px; background: #FFFFFF; }
+  .ex-data-label { font-size: 12px; font-family: Helvetica, sans-serif; font-weight: 700; color: #03657C; }
+  .ex-data-value { font-size: 12px; font-family: Helvetica, sans-serif; font-weight: 400; color: #03657C; margin-top: 2px; }
+  
+  /* Section headings */
+  .ex-h2 { font-family: NoeDisplay, Georgia, serif; font-size: 23px; font-weight: 400; color: #03657C; }
+  .ex-h3 { font-family: NoeDisplay, Georgia, serif; font-size: 20px; font-weight: 400; color: #03657C; }
+  
+  /* Footer */
+  .ex-footer-top { background: #F8F8F8; padding: 24px 30px; }
+  .ex-footer-bottom { background: #004254; padding: 16px 30px; display: flex; justify-content: space-between; align-items: center; }
+  .ex-footer-link { color: #E5E5E5; text-decoration: none; font-size: 12px; font-family: Helvetica, sans-serif; }
+
+  /* Input */
+  .ex-input { border: 1px solid #DEDFE0; padding: 8px 12px; font-size: 14px; font-family: Helvetica, sans-serif; color: #212529; background: #FFFFFF; outline: none; }
+  .ex-input:focus { border-color: #03657C; }
+  
+  /* Dividers */
+  .ds-divider { height: 1px; background: #E5E5E5; margin: 32px 0; }
+  
+</style>
+</head>
+<body>
+<!-- ===== PAGE HEADER ===== -->
+<div class="ds-page-header">
+  <h1>Sistema de Diseño – Indraweb</h1>
+  <p>Extraído de: https://www.indraweb.net · Perfil Profesional · Fecha: 04/05/2026</p>
+</div>
+
+<div class="ds-wrapper">
+
+<!-- ===== 1. COLORES ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">1. Paleta de Colores</h2>
+  
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:12px;margin-top:0;">Colores Primarios</h3>
+  <div class="ds-grid">
+    <div class="swatch"><div class="swatch-color" style="background:#004254;"></div><div class="swatch-info"><div class="swatch-name">Deep Teal</div><div class="swatch-hex">#004254</div><div class="swatch-role">Primary Dark / Header</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#03657C;"></div><div class="swatch-info"><div class="swatch-name">Teal</div><div class="swatch-hex">#03657C</div><div class="swatch-role">Primary / Nav / Titles</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#FBBB21;border:1px solid #E5E5E5;"></div><div class="swatch-info"><div class="swatch-name">Amber</div><div class="swatch-hex">#FBBB21</div><div class="swatch-role">Accent / CTA / Badge</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#007BFF;"></div><div class="swatch-info"><div class="swatch-name">Blue</div><div class="swatch-hex">#007BFF</div><div class="swatch-role">Links / CTA Secundario</div></div></div>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:12px;margin-top:24px;">Colores Neutros</h3>
+  <div class="ds-grid">
+    <div class="swatch"><div class="swatch-color" style="background:#212529;"></div><div class="swatch-info"><div class="swatch-name">Dark Gray</div><div class="swatch-hex">#212529</div><div class="swatch-role">Text body</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#333333;"></div><div class="swatch-info"><div class="swatch-name">Near Black</div><div class="swatch-hex">#333333</div><div class="swatch-role">Nav subheadings</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#666666;"></div><div class="swatch-info"><div class="swatch-name">Medium Gray</div><div class="swatch-hex">#666666</div><div class="swatch-role">Secondary text</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#868689;"></div><div class="swatch-info"><div class="swatch-name">Muted Gray</div><div class="swatch-hex">#868689</div><div class="swatch-role">Placeholders</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#999999;"></div><div class="swatch-info"><div class="swatch-name">Light Gray</div><div class="swatch-hex">#999999</div><div class="swatch-role">Muted text</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#F8F8F8;border:1px solid #E5E5E5;"></div><div class="swatch-info"><div class="swatch-name">Off White</div><div class="swatch-hex">#F8F8F8</div><div class="swatch-role">Surface / Footer-top</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#FFFFFF;border:1px solid #E5E5E5;"></div><div class="swatch-info"><div class="swatch-name">White</div><div class="swatch-hex">#FFFFFF</div><div class="swatch-role">Background</div></div></div>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:12px;margin-top:24px;">Bordes y Divisores</h3>
+  <div class="ds-grid">
+    <div class="swatch"><div class="swatch-color" style="background:#DEDFE0;"></div><div class="swatch-info"><div class="swatch-name">Border Gray</div><div class="swatch-hex">#DEDFE0</div><div class="swatch-role">Borders</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#E5E5E5;"></div><div class="swatch-info"><div class="swatch-name">Light Border</div><div class="swatch-hex">#E5E5E5</div><div class="swatch-role">Dividers</div></div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#EAEAEA;"></div><div class="swatch-info"><div class="swatch-name">Divider</div><div class="swatch-hex">#EAEAEA</div><div class="swatch-role">Context menus</div></div></div>
+  </div>
+</section>
+<!-- ===== 2. TIPOGRAFÍA ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">2. Tipografía</h2>
+
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:12px;">Familias tipográficas</h3>
+  <table class="ds-table" style="margin-bottom:24px;">
+    <thead><tr><th>Familia</th><th>Uso</th><th>Variantes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>NeoSansPro</strong></td><td>Logotipo, navegación, titulares de perfil, etiquetas de datos</td><td>Light (300), Regular (400), Medium (500), Bold (700)</td></tr>
+      <tr><td><strong>NoeDisplay</strong></td><td>Títulos de sección (H2, H3)</td><td>Regular (400)</td></tr>
+      <tr><td><strong>Helvetica / Arial</strong></td><td>Cuerpo de texto, formularios, botones, metadatos</td><td>Regular (400), Medium (500), Semi-Bold (600), Bold (700)</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:12px;">Escala tipográfica</h3>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Display / Nombre de usuario — NeoSansPro 26px Bold</div>
+    <div style="font-family:NeoSansPro,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#004254;line-height:37.5px;">Diaz Palmera, Jeison Antonio</div>
+    <div class="type-meta">font: NeoSansPro | size: 26px | weight: 700 | line-height: 37.5px | color: #004254</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Header User Link — NeoSansPro 26px Light</div>
+    <div style="font-family:NeoSansPro,Helvetica,sans-serif;font-size:26px;font-weight:300;color:#004254;line-height:48px;">Jeison Diaz</div>
+    <div class="type-meta">font: NeoSansPro | size: 26px | weight: 300 | line-height: 48px | color: #004254</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">H2 / Section Title — NoeDisplay 23px Regular</div>
+    <div style="font-family:NoeDisplay,Georgia,serif;font-size:23px;font-weight:400;color:#03657C;line-height:32px;">Datos personales</div>
+    <div class="type-meta">font: NoeDisplay | size: 23px | weight: 400 | line-height: 32px | color: #03657C</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">H3 / List Title — NoeDisplay 20px Regular</div>
+    <div style="font-family:NoeDisplay,Georgia,serif;font-size:20px;font-weight:400;color:#03657C;line-height:24px;">Centro de trabajo asociado</div>
+    <div class="type-meta">font: NoeDisplay | size: 20px | weight: 400 | line-height: 24px | color: #03657C</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Nav Level 1 — NeoSansPro 18px Regular</div>
+    <div style="font-family:NeoSansPro,Helvetica,sans-serif;font-size:18px;font-weight:400;color:#004254;line-height:normal;">Somos Indra &nbsp; Sistemas de información &nbsp; Personas</div>
+    <div class="type-meta">font: NeoSansPro | size: 18px | weight: 400 | color: #FFFFFF (sobre fondo #03657C)</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">H1 / Page Title — Helvetica 16px Medium</div>
+    <div style="font-family:Helvetica,sans-serif;font-size:16px;font-weight:500;color:#007BFF;line-height:19.2px;">ProfessionalProfile</div>
+    <div class="type-meta">font: Helvetica | size: 16px | weight: 500 | line-height: 19.2px | color: #007BFF</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Body / Base — Helvetica 16px Regular</div>
+    <div style="font-family:Helvetica,sans-serif;font-size:16px;font-weight:400;color:#212529;line-height:24px;">Texto de cuerpo principal. Senior Systems Engineer, Colombia.</div>
+    <div class="type-meta">font: Helvetica | size: 16px | weight: 400 | line-height: 24px | color: #212529</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Nav Level 2 Title — NeoSansPro 16px Medium</div>
+    <div style="font-family:NeoSansPro,Helvetica,sans-serif;font-size:16px;font-weight:500;color:#333333;line-height:24px;">Nuestras líneas de negocio</div>
+    <div class="type-meta">font: NeoSansPro | size: 16px | weight: 500 | line-height: 24px | color: #333333</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Cambio contraseña btn — Helvetica 13px Bold</div>
+    <div style="font-family:Helvetica,sans-serif;font-size:13px;font-weight:700;color:#03657C;line-height:19.5px;">Cambio de contraseña</div>
+    <div class="type-meta">font: Helvetica | size: 13px | weight: 700 | line-height: 19.5px | color: #03657C</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Data Label — Helvetica 12px Bold</div>
+    <div style="font-family:Helvetica,sans-serif;font-size:12px;font-weight:700;color:#03657C;line-height:18px;">Organización: &nbsp; Departamento: &nbsp; Teléfono fijo:</div>
+    <div class="type-meta">font: Helvetica | size: 12px | weight: 700 | line-height: 18px | color: #03657C</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Data Value — Helvetica 12px Regular</div>
+    <div style="font-family:Helvetica,sans-serif;font-size:12px;font-weight:400;color:#03657C;line-height:18px;">INDRA COLOMBIA S.A.S. &nbsp;·&nbsp; CAPACIDADES TECH &nbsp;·&nbsp; 4413790</div>
+    <div class="type-meta">font: Helvetica | size: 12px | weight: 400 | line-height: 18px | color: #03657C</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Footer Links — Helvetica 11px Regular</div>
+    <div style="font-family:Helvetica,sans-serif;font-size:11px;font-weight:400;color:#999999;line-height:16.5px;">Política de Privacidad · Aviso Legal · Accesibilidad</div>
+    <div class="type-meta">font: Helvetica | size: 11px | weight: 400 | line-height: 16.5px | color: #FFFFFF (sobre fondo oscuro)</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-specimen-label">Nav New Badge — NeoSansPro 10px Medium</div>
+    <div style="font-family:NeoSansPro,Helvetica,sans-serif;font-size:10px;font-weight:500;color:#004254;line-height:15px;">NEW</div>
+    <div class="type-meta">font: NeoSansPro | size: 10px | weight: 500 | line-height: 15px | color: #004254</div>
+  </div>
+</section>
+<!-- ===== 3. ESPACIADO ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">3. Espaciado y Layout</h2>
+  
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:16px;">Escala de espaciado (base 4px)</h3>
+  <div style="padding:24px;background:#F8F8F8;border:1px solid #E5E5E5;">
+    <div class="spacing-row"><div class="spacing-box" style="width:4px;height:16px;"></div><span class="spacing-label">4px — xs (var: --space-xs)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:8px;height:16px;"></div><span class="spacing-label">8px — sm (var: --space-sm)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:12px;height:16px;"></div><span class="spacing-label">12px — md (var: --space-md)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:16px;height:16px;"></div><span class="spacing-label">16px — lg (var: --space-lg)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:24px;height:16px;"></div><span class="spacing-label">24px — xl (var: --space-xl)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:32px;height:16px;"></div><span class="spacing-label">32px — 2xl (var: --space-2xl)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:40px;height:16px;"></div><span class="spacing-label">40px — 3xl (var: --space-3xl)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:48px;height:16px;"></div><span class="spacing-label">48px — 4xl (var: --space-4xl)</span></div>
+    <div class="spacing-row"><div class="spacing-box" style="width:64px;height:16px;"></div><span class="spacing-label">64px — 5xl (var: --space-5xl)</span></div>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;color:#004254;margin-bottom:12px;margin-top:24px;">Grid y estructura</h3>
+  <table class="ds-table">
+    <thead><tr><th>Elemento</th><th>Valor</th><th>Observación</th></tr></thead>
+    <tbody>
+      <tr><td>Sistema de grid</td><td><code>Bootstrap / col-*</code></td><td>Columnas 12, clases col-6, col-12</td></tr>
+      <tr><td>Header height</td><td><code>108px</code></td><td>padding: 30px top / 26px bottom</td></tr>
+      <tr><td>Nav bar height</td><td><code>50px</code></td><td>Barra de navegación principal</td></tr>
+      <tr><td>Content padding</td><td><code>0 15px</code></td><td>Columnas de datos</td></tr>
+      <tr><td>Dropdown padding</td><td><code>26px 0 55px</code></td><td>Menú desplegable nivel 2</td></tr>
+      <tr><td>Nav level 1 link padding</td><td><code>12px 20px</code></td><td>Links de navegación principal</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===== 4. BORDER RADIUS ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">4. Bordes y Radios</h2>
+  <table class="ds-table">
+    <thead><tr><th>Componente</th><th>Border Radius</th><th>Border</th></tr></thead>
+    <tbody>
+      <tr><td>Header, Nav bar</td><td><code>0px</code></td><td>ninguno</td></tr>
+      <tr><td>Botón "Editar" (primario)</td><td><code>0px</code></td><td><code>4px solid #FBBB21</code></td></tr>
+      <tr><td>Botón "Cambio de contraseña" (secundario)</td><td><code>4px</code></td><td><code>1px solid #03657C</code></td></tr>
+      <tr><td>Inputs</td><td><code>0px</code></td><td><code>1px solid #DEDFE0</code></td></tr>
+      <tr><td>Badge "Profesionales"</td><td><code>0px</code></td><td>ninguno</td></tr>
+      <tr><td>Tarjetas / contenedores</td><td><code>0px (flat design)</code></td><td>ninguno</td></tr>
+    </tbody>
+  </table>
+</section>
+<!-- ===== 5. COMPONENTES ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">5. Componentes</h2>
+
+  <!-- 5.1 Header -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.1 Header</h3>
+  <div class="demo-area" style="padding:0;overflow:hidden;margin-bottom:8px;">
+    <div class="ex-header">
+      <span class="ex-header__logo">indra<span>web</span></span>
+      <input class="ex-header__search" type="text" placeholder="Busca personas, documentos...">
+      <div style="display:flex;gap:16px;align-items:center;">
+        <span style="color:#FFFFFF;font-size:18px;">🔔 ✉ 📣</span>
+        <div style="width:36px;height:36px;border-radius:50%;background:#03657C;display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">JD</div>
+        <span style="color:#FFFFFF;font-size:13px;">Cerrar sesión</span>
+      </div>
+    </div>
+  </div>
+  <div class="type-meta" style="margin-bottom:24px;">Fondo: <code>#004254</code> | Altura: <code>108px</code> | Fuente nav: NeoSansPro | Search: transparent + border-bottom blanco</div>
+
+  <!-- 5.2 Navegación principal -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.2 Navegación Principal (Nav Level 1)</h3>
+  <div class="demo-area" style="padding:0;overflow:hidden;margin-bottom:8px;">
+    <div class="ex-nav">
+      <a href="#">Somos Indra ▾</a>
+      <a href="#">Sistemas de información</a>
+      <a href="#">Personas ▾</a>
+      <a href="#">Comunicación ▾</a>
+      <a href="#">Open University ▾</a>
+    </div>
+  </div>
+  <div class="type-meta" style="margin-bottom:24px;">Fondo: <code>#03657C</code> | Fuente: NeoSansPro 18px w400 | Color texto: <code>#FFFFFF</code> | Altura: <code>50px</code></div>
+
+  <!-- 5.3 Dropdown nav -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.3 Menú Desplegable (Nav Level 2)</h3>
+  <div class="demo-area" style="padding:0;overflow:hidden;margin-bottom:8px;">
+    <div class="ex-dropdown">
+      <div>
+        <div class="ex-dropdown__group-title">Nuestras áreas</div>
+        <a class="ex-dropdown__link" href="#">Tecnología</a>
+        <a class="ex-dropdown__link" href="#">Innovación</a>
+        <a class="ex-dropdown__link" href="#">Consultoría</a>
+      </div>
+      <div>
+        <div class="ex-dropdown__group-title">Cultura</div>
+        <a class="ex-dropdown__link" href="#">Valores</a>
+        <a class="ex-dropdown__link" href="#">Diversidad</a>
+      </div>
+    </div>
+  </div>
+  <div class="type-meta" style="margin-bottom:24px;">Fondo: <code>#F8F8F8</code> | Grupo: NeoSansPro 16px w500 <code>#333333</code> | Links: NeoSansPro 14px w400 <code>#004254</code> | Padding: 26px 0 55px</div>
+
+  <!-- 5.4 Perfil de usuario -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.4 Tarjeta de Perfil</h3>
+  <div class="demo-area" style="margin-bottom:8px;">
+    <div class="ex-profile">
+      <div>
+        <div style="width:90px;height:90px;background:#E5E5E5;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:32px;">👤</div>
+        <div class="ex-profile__badge">Profesionales</div>
+      </div>
+      <div>
+        <div class="ex-profile__name">Diaz Palmera, Jeison Antonio</div>
+        <div class="ex-profile__org">CAPACIDADES TECH, Colombia</div>
+        <div class="ex-profile__pos">Senior Systems Engineer 👁</div>
+        <div class="ex-profile__email">✉ jadiazp@indracompany.com</div>
+        <div style="margin-top:16px;">
+          <button class="ex-btn-secondary">🔒 Cambio de contraseña</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="type-meta" style="margin-bottom:24px;">Nombre: NeoSansPro 26px w700 <code>#004254</code> | Org: NeoSansPro 14px w400 | Badge: Helvetica bg <code>#FBBB21</code> color <code>#03657C</code></div>
+
+  <!-- 5.5 Grid de datos -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.5 Grid de Datos del Perfil</h3>
+  <div class="demo-area" style="margin-bottom:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div>
+        <div style="font-family:NoeDisplay,Georgia,serif;font-size:23px;color:#03657C;margin-bottom:16px;">Datos personales</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px;">
+          <span class="ex-data-label">Organización:</span><span class="ex-data-value">INDRA COLOMBIA S.A.S.</span>
+          <span class="ex-data-label">Departamento:</span><span class="ex-data-value">CAPACIDADES TECH</span>
+          <span class="ex-data-label">Id:</span><span class="ex-data-value">573354</span>
+          <span class="ex-data-label">Rol:</span><span class="ex-data-value">Senior Systems Engineer</span>
+          <span class="ex-data-label">Alias:</span><span class="ex-data-value">jadiazp</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:NoeDisplay,Georgia,serif;font-size:23px;color:#03657C;margin-bottom:16px;">Centro de trabajo</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px;">
+          <span class="ex-data-label">Oficina:</span><span class="ex-data-value">BOGOTA-CALLE93</span>
+          <span class="ex-data-label">Dirección:</span><span class="ex-data-value">Calle 93 # 16-25</span>
+          <span class="ex-data-label">Ciudad:</span><span class="ex-data-value">Bogota</span>
+          <span class="ex-data-label">País:</span><span class="ex-data-value">Colombia</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="type-meta" style="margin-bottom:24px;">Labels: Helvetica 12px w700 <code>#03657C</code> | Valores: Helvetica 12px w400 <code>#03657C</code></div>
+</section>
+  <!-- 5.6 Botones -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.6 Botones</h3>
+  <div class="demo-area" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+    <button class="ex-btn-primary">Editar</button>
+    <button class="ex-btn-secondary">🔒 Cambio de contraseña</button>
+    <button class="ex-btn-link">Ver más</button>
+    <div style="background:#004254;padding:12px 20px;">
+      <button style="background:transparent;color:#FFFFFF;border:1px solid rgba(255,255,255,0.6);padding:8px 16px;font-size:14px;font-family:Helvetica,sans-serif;cursor:pointer;">Acción sobre fondo oscuro</button>
+    </div>
+  </div>
+  <table class="ds-table" style="margin-bottom:24px;">
+    <thead><tr><th>Variante</th><th>Background</th><th>Color</th><th>Border</th><th>Border-radius</th><th>Padding</th><th>Fuente</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Primario (Editar)</strong></td><td><code>transparent</code></td><td><code>#004254</code></td><td><code>4px solid #FBBB21</code></td><td><code>0px</code></td><td><code>8px 12px</code></td><td>Helvetica 16px w400</td></tr>
+      <tr><td><strong>Secundario (Cambio contraseña)</strong></td><td><code>transparent</code></td><td><code>#03657C</code></td><td><code>1px solid #03657C</code></td><td><code>4px</code></td><td><code>7px 10px</code></td><td>Helvetica 13px w700</td></tr>
+      <tr><td><strong>Link / Texto</strong></td><td><code>transparent</code></td><td><code>#007BFF</code></td><td>ninguno</td><td><code>0px</code></td><td><code>0</code></td><td>Helvetica 16px w400</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 5.7 Inputs -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.7 Campos de entrada</h3>
+  <div class="demo-area" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-bottom:8px;">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:#03657C;">Campo de texto</label>
+      <input class="ex-input" type="text" placeholder="Escribe aquí..." value="INDRA COLOMBIA S.A.S.">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:#03657C;">Búsqueda (en header)</label>
+      <div style="background:#004254;padding:8px;">
+        <input style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.5);color:#FFFFFF;padding:8px 5px;font-size:14px;outline:none;width:200px;" type="text" placeholder="Busca personas, documentos...">
+      </div>
+    </div>
+  </div>
+  <table class="ds-table" style="margin-bottom:24px;">
+    <thead><tr><th>Contexto</th><th>Background</th><th>Color</th><th>Border</th><th>Padding</th></tr></thead>
+    <tbody>
+      <tr><td>Campo estándar</td><td><code>#FFFFFF</code></td><td><code>#212529</code></td><td><code>1px solid #DEDFE0</code></td><td><code>8px 12px</code></td></tr>
+      <tr><td>Búsqueda en header</td><td><code>transparent</code></td><td><code>#FFFFFF</code></td><td><code>border-bottom: 1px solid rgba(255,255,255,0.5)</code></td><td><code>13px 32px 9px 5px</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- 5.8 Badge -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.8 Badges / Etiquetas</h3>
+  <div class="demo-area" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+    <span style="background:#FBBB21;color:#03657C;font-size:12px;font-weight:700;padding:5px 12px;font-family:Helvetica,sans-serif;">Profesionales</span>
+    <span style="background:#FBBB21;color:#03657C;font-size:10px;font-weight:500;padding:3px 8px;font-family:NeoSansPro,sans-serif;">NEW</span>
+    <span style="background:#03657C;color:#FFFFFF;font-size:11px;font-weight:700;padding:3px 8px;font-family:Helvetica,sans-serif;">Activo</span>
+  </div>
+  <div class="type-meta" style="margin-bottom:24px;">Badge principal: bg <code>#FBBB21</code> · color <code>#03657C</code> · flat (border-radius: 0) | Badge nav "new": NeoSansPro 10px w500</div>
+
+  <!-- 5.9 Footer -->
+  <h3 style="font-size:16px;font-weight:700;color:#03657C;margin-bottom:12px;">5.9 Footer</h3>
+  <div style="margin-bottom:8px;overflow:hidden;">
+    <div class="ex-footer-top">
+      <div style="font-size:12px;color:#666666;font-family:Helvetica,sans-serif;">
+        Indra 04/05/2026 17:38 h.&nbsp;&nbsp;49,94 € ↑ +1,13 | 2.32 %&nbsp;&nbsp;&nbsp;IBEX35 04/05/2026&nbsp;&nbsp;17.356,10 ↓ -424,90 | 2.39%
+      </div>
+    </div>
+    <div class="ex-footer-bottom">
+      <div style="display:flex;gap:16px;">
+        <a class="ex-footer-link" href="#">Política de Privacidad</a>
+        <span style="color:#E5E5E5;font-size:11px;">|</span>
+        <a class="ex-footer-link" href="#">Aviso Legal</a>
+        <span style="color:#E5E5E5;font-size:11px;">|</span>
+        <a class="ex-footer-link" href="#">Accesibilidad</a>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <span style="color:#E5E5E5;font-size:18px;">in 🐦 📘</span>
+      </div>
+    </div>
+  </div>
+  <div class="type-meta" style="margin-bottom:0;">Footer top: bg <code>#F8F8F8</code> | Footer bottom: bg <code>#004254</code> | Links: Helvetica 11px <code>#E5E5E5</code></div>
+</section>
+<!-- ===== 6. TOKENS CSS ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">6. Tokens CSS (Variables)</h2>
+  <p style="font-size:13px;color:#666;margin-bottom:16px;">Propuesta de tokens CSS para implementar el sistema de diseño como variables nativas.</p>
+  <pre style="background:#212529;color:#F8F8F8;padding:24px;border-radius:4px;font-size:13px;line-height:1.7;overflow-x:auto;"><code>:root {
+  /* ── COLORES ─────────────────────────────────── */
+  --color-primary-dark:    #004254;   /* Deep Teal  – Header, footer bottom */
+  --color-primary:         #03657C;   /* Teal       – Nav bar, títulos, bordes */
+  --color-accent:          #FBBB21;   /* Amber      – CTA, badge Profesionales */
+  --color-link:            #007BFF;   /* Blue       – Links, H1 */
+
+  --color-text:            #212529;   /* Dark Gray  – Cuerpo principal */
+  --color-text-secondary:  #666666;   /* Medium Gray– Texto secundario */
+  --color-text-muted:      #999999;   /* Light Gray – Texto desactivado */
+  --color-text-subdued:    #868689;   /* Muted Gray – Placeholders */
+  --color-text-sub2:       #333333;   /* Near Black – Nav level 2 title */
+
+  --color-surface:         #FFFFFF;   /* Fondo principal */
+  --color-surface-alt:     #F8F8F8;   /* Fondo alternativo – Footer top, dropdown */
+  --color-border:          #DEDFE0;   /* Borde estándar */
+  --color-border-light:    #E5E5E5;   /* Borde suave */
+  --color-divider:         #EAEAEA;   /* Divisor sutil */
+
+  /* ── TIPOGRAFÍA ──────────────────────────────── */
+  --font-display:          'NeoSansPro', Helvetica, Arial, sans-serif;
+  --font-heading:          'NoeDisplay', Georgia, serif;
+  --font-body:             Helvetica, Arial, sans-serif;
+
+  --font-size-xs:          10px;
+  --font-size-sm:          11px;
+  --font-size-base-sm:     12px;
+  --font-size-base:        13px;
+  --font-size-md:          14px;
+  --font-size-lg:          16px;
+  --font-size-xl:          18px;
+  --font-size-2xl:         20px;
+  --font-size-3xl:         23px;
+  --font-size-4xl:         26px;
+
+  --font-weight-light:     300;
+  --font-weight-regular:   400;
+  --font-weight-medium:    500;
+  --font-weight-semibold:  600;
+  --font-weight-bold:      700;
+
+  --line-height-tight:     1.2;
+  --line-height-base:      1.5;
+  --line-height-relaxed:   1.75;
+
+  /* ── ESPACIADO ───────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+
+  /* ── BORDES ──────────────────────────────────── */
+  --radius-sm:   0px;   /* Diseño flat predominante */
+  --radius-md:   4px;   /* Botón secundario, inputs */
+  --radius-full: 50%;   /* Avatares circulares */
+
+  --border-standard:  1px solid var(--color-border);
+  --border-accent:    4px solid var(--color-accent);
+  --border-primary:   1px solid var(--color-primary);
+
+  /* ── LAYOUT ──────────────────────────────────── */
+  --header-height:   108px;
+  --nav-height:       50px;
+  --container-pad:   15px;
+}</code></pre>
+</section>
+
+<!-- ===== 7. REGLAS DE USO ===== -->
+<section class="ds-section">
+  <h2 class="ds-section-title">7. Reglas de Uso y Accesibilidad</h2>
+  <table class="ds-table">
+    <thead><tr><th>Regla</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Contraste mínimo</strong></td><td>Texto claro sobre fondos oscuros: <code>#FFFFFF</code> sobre <code>#004254</code> (ratio 10.3:1 ✓) y <code>#FFFFFF</code> sobre <code>#03657C</code> (ratio 7.8:1 ✓)</td></tr>
+      <tr><td><strong>Contraste Amber</strong></td><td>Texto <code>#004254</code> sobre <code>#FBBB21</code>: ratio 6.2:1 ✓ — usar siempre dark teal sobre amber, no blanco</td></tr>
+      <tr><td><strong>Fuentes web-safe fallback</strong></td><td>Siempre incluir <code>Helvetica, Arial, sans-serif</code> como fallback para NeoSansPro; <code>Georgia, serif</code> para NoeDisplay</td></tr>
+      <tr><td><strong>Diseño flat</strong></td><td>Sin sombras de caja en componentes propios de Indra. border-radius: 0 salvo botón secundario (4px) e inputs</td></tr>
+      <tr><td><strong>CTA primario</strong></td><td>Usar borde Amber grueso (<code>4px solid #FBBB21</code>) en acciones principales de edición</td></tr>
+      <tr><td><strong>Grid</strong></td><td>Bootstrap cols: usar <code>col-6</code> para splits 50/50 en datos de perfil</td></tr>
+      <tr><td><strong>Badge activo</strong></td><td>Sección activa: fondo <code>#FBBB21</code>, texto <code>#03657C</code>. Clase <code>.active</code></td></tr>
+      <tr><td><strong>Iconografía</strong></td><td>Iconos de navegación en header: iconos SVG/font-icon blancos sobre fondo <code>#004254</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+</div><!-- /.ds-wrapper -->
+</body>
+</html>
