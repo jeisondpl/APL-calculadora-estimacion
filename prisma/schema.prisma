@@ -30,7 +30,8 @@ model Usuario {
   updatedAt    DateTime @updatedAt      @map("updated_at")
 
   proyectosEstimados ProyectoEstimador[]
-  actividadesCreadas Actividad[]
+  actividadesCreadas   Actividad[] @relation("ActividadesCreadas")
+  actividadesAsignadas Actividad[] @relation("ActividadesAsignadas")
 
   @@map("usuarios")
 }
@@ -152,6 +153,8 @@ model Proyecto {
   totalCopilotMin Int      @default(0) @map("total_copilot_min")
   totalTmeMin     Int      @default(0) @map("total_tme_min")
   estado          String   @default("ABIERTO")
+  noPrefas          Int?     @default(0) @map("no_prefas")
+  tiempoSesionHoras Decimal? @default(0) @map("tiempo_sesion_horas") @db.Decimal(8, 2)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt      @map("updated_at")
 
@@ -175,17 +178,21 @@ model Actividad {
   totalBaseMin    Int @default(0) @map("total_base_min")
   totalCopilotMin Int @default(0) @map("total_copilot_min")
   totalTmeMin     Int @default(0) @map("total_tme_min")
-  creadoPorId Int?     @map("creado_por_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt      @map("updated_at")
+  creadoPorId  Int?     @map("creado_por_id")
+  asignadoAId  Int?     @map("asignado_a_id")
+  datosExtra   Json?    @map("datos_extra")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt      @map("updated_at")
 
-  proyectoId  Int       @map("proyecto_id")
-  proyecto    Proyecto  @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  creadoPor   Usuario?  @relation(fields: [creadoPorId], references: [id], onDelete: SetNull)
+  proyectoId   Int       @map("proyecto_id")
+  proyecto     Proyecto  @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  creadoPor    Usuario?  @relation("ActividadesCreadas", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  asignadoA    Usuario?  @relation("ActividadesAsignadas", fields: [asignadoAId], references: [id], onDelete: SetNull)
 
   componentes ActividadComponente[]
 
   @@index([proyectoId])
+  @@index([asignadoAId])
   @@map("actividades")
 }
 
