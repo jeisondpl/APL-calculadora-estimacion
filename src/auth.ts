@@ -2,12 +2,14 @@ import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/shared/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { authConfig } from '@/auth.config'
 
+/**
+ * Runtime Node con Credentials + Prisma + bcrypt.
+ * NO usar en el middleware (Edge) — para Edge usa `auth.config.ts`.
+ */
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.AUTH_SECRET,
-  session: { strategy: 'jwt' },
-  pages:   { signIn: '/login' },
-
+  ...authConfig,
   providers: [
     Credentials({
       name: 'credentials',
@@ -38,21 +40,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.rol    = (user as unknown as { rol: string }).rol
-        token.userId = Number(user.id)
-      }
-      return token
-    },
-    session({ session, token }) {
-      if (session.user) {
-        (session.user as unknown as { rol: string; userId: number }).rol    = token.rol    as string
-        (session.user as unknown as { rol: string; userId: number }).userId = token.userId as number
-      }
-      return session
-    },
-  },
 })
