@@ -85,22 +85,37 @@ Plantillas para registro de hallazgos:
 
 ### 3. Variables de entorno en Vercel
 
-| Variable | Valor |
-|----------|-------|
-| `DATABASE_URL` | Connection string de Neon (con `?sslmode=require&channel_binding=require`) |
-| `AUTH_SECRET` | Generar con `openssl rand -base64 32` |
-| `AUTH_URL` | URL final del proyecto (ej. `https://apl-calculadora-estimacion-xxxx.vercel.app`) |
-| `NEXT_PUBLIC_API_URL` | Misma URL + `/api` |
+| Variable | Valor | Origen |
+|----------|-------|--------|
+| `DATABASE_URL` | Neon **pooled** (host con `-pooler`) | Connect → toggle "Connection pooling" **ON** |
+| `DIRECT_URL` | Neon **unpooled** (host sin `-pooler`) | Connect → toggle "Connection pooling" **OFF** |
+| `AUTH_SECRET` | Generar con `openssl rand -base64 32` | Local |
+| `AUTH_URL` | URL final del proyecto (ej. `https://apl-calculadora-estimacion-xxxx.vercel.app`) | Vercel asigna tras 1er deploy |
+| `NEXT_PUBLIC_API_URL` | Misma URL + `/api` | Vercel |
+
+> **Por qué dos URLs:**
+> - `DATABASE_URL` (pooled) optimiza conexiones efímeras de funciones serverless en runtime.
+> - `DIRECT_URL` (unpooled) es necesaria para `prisma migrate` — Prisma Migrate usa prepared statements que el pooler no soporta.
 
 ### 4. Migraciones Prisma
 
-Antes del primer deploy, correr migraciones contra Neon:
+`vercel.json` ejecuta `prisma generate` en cada build. Para aplicar **migraciones** a Neon, una opción:
 
-```bash
-DATABASE_URL="<neon-connection-string>" pnpm prisma migrate deploy
+**A) Desde tu máquina (recomendado para 1ª vez):**
+
+```powershell
+$env:DIRECT_URL="<unpooled-connection-string>"
+$env:DATABASE_URL="<pooled-connection-string>"
+pnpm prisma migrate deploy
 ```
 
-`vercel.json` ya ejecuta `prisma generate` automáticamente en cada build.
+**B) En el build de Vercel (CI):** cambiar `buildCommand` en `vercel.json` a:
+
+```json
+"buildCommand": "pnpm prisma migrate deploy && pnpm prisma generate && pnpm next build"
+```
+
+Esto requiere que `DIRECT_URL` esté configurada en Vercel (paso 3).
 
 ## 🌳 Ramas
 
